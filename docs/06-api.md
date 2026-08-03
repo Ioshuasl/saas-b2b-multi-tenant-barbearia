@@ -1,0 +1,113 @@
+# 06 — API e Contratos
+
+REST/JSON, versionada em `/api/v1`. Três superfícies com regras de acesso distintas.
+
+| Superfície | Prefixo | Auth | Tenant vem de |
+|---|---|---|---|
+| Pública (cliente final) | `/api/v1/public/{slug}` | nenhuma (rate-limited) | slug do path |
+| Painel | `/api/v1/*` | Bearer JWT | claim do token |
+| Plataforma | `/api/v1/platform/*` | JWT com `platform_admin` | explícito + auditado |
+
+## Autenticação
+
+- Access token JWT curto (15 min) + refresh token httpOnly rotativo (30 dias).
+- Claims: `sub`, `tenant_id`, `role`, `staff_id?`, `exp`.
+- Senhas com argon2id. Rate limit de login: 5 tentativas/min por IP+e-mail.
+- Convite de profissional: token de uso único, expira em 7 dias.
+
+## Formato de erro (padrão em toda a API)
+
+```json
+{
+  "error": {
+    "code": "SLOT_TAKEN",
+    "message": "Este horário acabou de ser reservado.",
+    "details": { "starts_at": "2026-03-04T13:00:00Z" },
+    "request_id": "01HX..."
+  }
+}
+```
+
+Códigos previstos: `VALIDATION_ERROR` (422), `UNAUTHENTICATED` (401), `FORBIDDEN` (403), `NOT_FOUND` (404), `SLOT_TAKEN` (409), `OUTSIDE_BUSINESS_HOURS` (422), `TOO_LATE_TO_CANCEL` (422), `RATE_LIMITED` (429), `SUBSCRIPTION_INACTIVE` (402), `INTERNAL` (500).
+
+Regra: recurso de outro tenant retorna **404**, nunca 403 (não revela existência).
+
+## Endpoints públicos
+
+```
+GET  /api/v1/public/{slug}
+     → dados da barbearia, endereço, serviços visíveis, profissionais online
+
+GET  /api/v1/public/{slug}/availability
+     ?service_ids=uuid,uuid&staff_id=uuid|any&from=2026-03-01&to=2026-03-31
+     → { "days": [ { "date": "2026-03-01",
+                     "slots": [ { "starts_at": "...", "staff_id": "..." } ] } ] }
+
+POST /api/v1/public/{slug}/appointments
+     { service_ids[], staff_id|null, starts_at, customer: { name, phone, email? } }
+     → 201 { id, starts_at, ends_at, cancel_token, staff, services, total_price_cents }
+     → 409 SLOT_TAKEN
+
+GET    /api/v1/public/{slug}/appointments/{id}?token={cancel_token}
+DELETE /api/v1/public/{slug}/appointments/{id}?token={cancel_token}
+PATCH  /api/v1/public/{slug}/appointments/{id}?token={cancel_token}   (remarcar)
+```
+
+Proteções da rota pública: rate limit por IP e por slug, honeypot + captcha após N tentativas, validação de telefone, e limite de agendamentos futuros por telefone (default 3).
+
+## Endpoints do painel
+
+```
+POST   /api/v1/auth/signup            (cria tenant + OWNER)
+POST   /api/v1/auth/login
+POST   /api/v1/auth/refresh
+POST   /api/v1/auth/logout
+POST   /api/v1/auth/forgot-password
+POST   /api/v1/auth/reset-password
+GET    /api/v1/me
+
+GET    /api/v1/tenant                 PATCH /api/v1/tenant
+GET    /api/v1/tenant/slug-available?slug=
+
+CRUD   /api/v1/services
+CRUD   /api/v1/staff
+POST   /api/v1/staff/{id}/invite
+CRUD   /api/v1/business-hours
+CRUD   /api/v1/time-blocks
+
+GET    /api/v1/appointments?from=&to=&staff_id=&status=
+POST   /api/v1/appointments
+PATCH  /api/v1/appointments/{id}                (remarcar/editar)
+POST   /api/v1/appointments/{id}/status         { status }
+POST   /api/v1/appointments/{id}/payments       { amount_cents, method }
+GET    /api/v1/availability                     (mesma engine da pública)
+
+CRUD   /api/v1/customers
+GET    /api/v1/customers/{id}/appointments
+
+GET    /api/v1/reports/summary?from=&to=&staff_id=
+GET    /api/v1/reports/commissions?from=&to=
+GET    /api/v1/reports/export.csv?...
+
+GET    /api/v1/billing/subscription
+POST   /api/v1/billing/checkout-session
+POST   /api/v1/billing/portal-session
+```
+
+## Webhooks (entrada)
+
+```
+POST /api/v1/webhooks/payments      (assinatura verificada, idempotente via webhook_events)
+POST /api/v1/webhooks/whatsapp      (status de entrega / respostas)
+```
+
+Regra: webhook é a fonte da verdade do estado da assinatura. Retorno do browser após checkout nunca ativa nada sozinho.
+
+## Convenções
+
+- Paginação por cursor: `?limit=50&cursor=...` → `{ data: [], next_cursor }`.
+- Datas sempre ISO-8601 com offset. A API nunca aceita data "naive".
+- Valores monetários em centavos (inteiro), nunca float.
+- Idempotência em POSTs críticos via header `Idempotency-Key`.
+- `request_id` em toda resposta e em todo log.
+- OpenAPI gerado a partir do código e publicado em `/docs`.
