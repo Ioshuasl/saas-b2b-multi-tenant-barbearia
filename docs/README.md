@@ -85,6 +85,6 @@ Catálogo rastreável — ver [requisitos/README.md](./requisitos/README.md).
 | Parte | Conteúdo |
 | --- | --- |
 | **2** | API detalhada + `modulos/` |
-| **3** | `requisitos/` RF + RNF |
+| **3** | `requisitos/` RF + RNF ✅ |
 | **4** | Segurança/LGPD, baseline, infra, métricas, glossário, ADRs restantes |
 | **5** | Integração final do índice + limpeza do legado |
