@@ -1,0 +1,54 @@
+---
+description: Padrões frontend Next.js/React — índice de camadas e regras transversais
+globs: frontend/**/*
+alwaysApply: false
+---
+
+# Frontend — regras gerais
+
+**Arquitetura:** monólito modular (packages) + camadas Clean no fluxo de dados + SOLID. Código **simples, direto, organizado** — sem verbosidade nem complexidade especulativa. Ver `project-core.mdc`. Domínio rico fica no backend; UI não duplica invariantes.
+
+**Fluxo:** `Page → Component → Hook → Service → Data → API`
+
+- Hook com **TanStack Query** (`useQuery` / `useMutation`).
+- Skill: `.cursor/skills/frontend-orchestrator/SKILL.md`
+- Norma: `docs/16-estrutura-de-pastas.md`, `docs/09-frontend.md`
+
+## Rules por camada
+
+| Camada | Rule |
+|--------|------|
+| Types | `rules/frontend-types.mdc` |
+| Enum | `rules/frontend-enum.mdc` |
+| Schema | `rules/frontend-schema.mdc` |
+| Data | `rules/frontend-data.mdc` |
+| Service | `rules/frontend-service.mdc` |
+| Hook | `rules/frontend-hook.mdc` |
+| Component Index | `rules/frontend-component-index.mdc` |
+| Component Form (página) | `rules/frontend-component-form.mdc` |
+| Component FormDialog (modal) | `rules/frontend-component-form-dialog.mdc` |
+| Component Table | `rules/frontend-component-table.mdc` |
+| Component Columns | `rules/frontend-component-columns.mdc` |
+| Component Select | `rules/frontend-component-select.mdc` |
+| Page | `rules/frontend-page.mdc` |
+| Shared | `rules/frontend-shared.mdc` |
+
+**Nomenclatura de formulário:** `*Form` = página; `*FormDialog` = modal/Dialog.
+
+Packages: `operacional` · `financeiro` · `admin` · `messaging` · `public`.
+
+UI detalhada: `.cursor/docs/ui/INDEX.md` → **um** shard.
+
+## Regras transversais bloqueantes
+
+- Nenhuma camada acessa API exceto **Data**.
+- Tipagens em `types/`; enums em `enum/` — **sem** `interfaces/`.
+- Arquivos `PascalCase` (`CustomerCreateData.ts`, `useCustomerListHook.ts`).
+- Ops alinhadas ao REST: `List` / `Get` / `Create` / `Update` / `Delete`.
+- Hook usa Query/Mutation; invalida `queryKey` no `onSuccess`.
+- FormHook; `*FormDialog` com `handleForm`; modais `{isOpen && ...}`.
+- **Nunca** existir `frontend/src/packages/*/actions`.
+- Package não importa outro package — compartilhar em `shared/`.
+- Código compacto: concentrar decisão uma vez; não espalhar ternários redundantes.
+- Uma responsabilidade por arquivo/camada; sem hooks/god components inchados nem abstrações “para o futuro”.
+- Preferir o caminho mais curto que preserve Page→…→Data — não inventar camada extra.

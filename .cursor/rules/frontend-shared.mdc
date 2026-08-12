@@ -1,0 +1,28 @@
+---
+description: Frontend Shared — transversal entre packages
+globs: frontend/src/shared/**/*
+alwaysApply: false
+---
+
+# Frontend — Shared
+
+Não faz parte do fluxo CRUD do package.
+
+## Caminho
+
+`frontend/src/shared/{ui,layout,api,hooks,auth,helpers,styles}/…`
+
+## Obrigatório
+
+- Só o que já tem **2+ consumidores reais**.
+- UI genérica em `shared/ui` (burra: props, sem domínio).
+- `api-client` / `query-client` em `shared/api`.
+- Package **não** importa outro package — sobe para `shared/`.
+
+## Proibido
+
+- Domínio de uma única entidade.
+- `frontend/src/packages/*/actions`.
+- Pasta `interfaces/` — tipagens transversais em pasta clara (`helpers`, tipos junto do componente, etc.).
+
+Norma: `docs/09`, `docs/16`.

@@ -1,0 +1,24 @@
+---
+description: Frontend Data — único ponto que chama a API, 1 arquivo por ação
+globs: frontend/src/packages/**/data/**/*
+alwaysApply: false
+---
+
+# Frontend — Data
+
+## Caminho
+
+`frontend/src/packages/<area>/data/<Entidade>/CustomerListData.ts` (etc.)
+
+## Obrigatório
+
+- Um arquivo por operação REST: `List` / `Get` / `Create` / `Update` / `Delete`.
+- Único lugar que usa `api-client` / `fetch` tipado.
+- PascalCase: `CustomerCreateData.ts`.
+
+## Proibido
+
+- Regra de negócio / TanStack Query / manipulação de UI state.
+- Chamar Service/Hook.
+
+Norma: `docs/09`, `docs/16`.

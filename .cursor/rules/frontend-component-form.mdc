@@ -1,0 +1,25 @@
+---
+description: Frontend Component Form — formulário de página (não modal)
+globs: frontend/src/packages/**/components/**/*Form.tsx
+alwaysApply: false
+---
+
+# Frontend — Component Form
+
+**Nomenclatura:** `*Form` = formulário de **página**. Modal → `*FormDialog`.
+
+## Obrigatório
+
+- Arquivo: `<Entidade>Form.tsx`.
+- Form via `use<Entidade>FormHook()` — sem `useForm`/resolver/`defaultValues` no JSX.
+- `form.handleSubmit(onSave, onError)`.
+- Props tipadas em `types/<Entidade>/<Entidade>FormTypes.ts`.
+- Form longo: Sidebar sticky **360px** quando o padrão exigir.
+
+## Proibido
+
+- Encapsular em `Dialog` — isso é `*FormDialog`.
+- Acessar Data/API.
+- Decidir POST/PUT no Form (isso é no Data).
+
+Norma: `docs/09`, `.cursor/docs/ui/04-form-dialog.md` / `05` se precisar.

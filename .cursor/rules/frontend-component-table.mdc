@@ -1,0 +1,18 @@
+---
+description: Frontend Component Table — apresentacional
+globs: frontend/src/packages/**/components/**/*Table.tsx
+alwaysApply: false
+---
+
+# Frontend — Component Table
+
+## Obrigatório
+
+- Apresentacional — dados e callbacks por props.
+- Usa DataTable + `Columns` dedicado.
+- Props em `types/<Entidade>/<Entidade>TableTypes.ts`.
+
+## Proibido
+
+- Hook remoto, service, data ou API.
+- Mutar coleção sem callback do Index.

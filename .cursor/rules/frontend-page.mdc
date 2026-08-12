@@ -1,0 +1,30 @@
+---
+description: Frontend Page Next.js — compõe Index, sem fetch
+globs: frontend/src/app/**/page.tsx
+alwaysApply: false
+---
+
+# Frontend — Page
+
+## Caminho
+
+`frontend/src/app/(app|public)/.../page.tsx`
+
+## Obrigatório
+
+```tsx
+import { CustomerIndex } from '@/packages/operacional/components/Customer/CustomerIndex';
+
+export default function Page() {
+  return <CustomerIndex />;
+}
+```
+
+- Só composição / metadata. Zero fetch, zero regra de negócio.
+
+## Proibido
+
+- Hook, service, data, API na page.
+- Lógica além de compor o componente do domínio.
+
+Norma: `docs/09`, `docs/16`.

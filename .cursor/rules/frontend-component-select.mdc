@@ -1,0 +1,18 @@
+---
+description: Frontend Component Select — combobox com hook de listagem
+globs: frontend/src/packages/**/components/**/*Select.tsx
+alwaysApply: false
+---
+
+# Frontend — Component Select
+
+## Obrigatório
+
+- Arquivo `<Entidade>Select.tsx` + props em `types/<Entidade>/…SelectTypes.ts`.
+- Carrega via **List/Get hook** (TanStack Query) — nunca Data/API no Select.
+- Combobox acessível (Popover/Command ou DS do projeto).
+
+## Proibido
+
+- Props tipadas só inline se o contrato for reutilizado.
+- Chamar Data/`fetch`/Service fora do Hook.

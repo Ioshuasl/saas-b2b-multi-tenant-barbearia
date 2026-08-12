@@ -1,0 +1,18 @@
+---
+description: Frontend Component Columns — ColumnDef isolado
+globs: frontend/src/packages/**/components/**/*Columns.tsx
+alwaysApply: false
+---
+
+# Frontend — Component Columns
+
+## Obrigatório
+
+- Arquivo isolado (`ColumnDef`).
+- Callbacks `onEdit`/`onDelete` do Index.
+- Labels de ação curtas + ícone (`Editar`, `Remover`).
+
+## Proibido
+
+- API, data, service ou hook.
+- Labels longas com nome da entidade.

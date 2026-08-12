@@ -1,0 +1,47 @@
+---
+description: Padrões backend Node/Express/Prisma — índice de camadas e regras transversais
+globs: backend/**/*
+alwaysApply: false
+---
+
+# Backend — regras gerais
+
+**Arquitetura:** monólito modular + DDD (`models/`) + camadas Clean + SOLID. Código **simples, direto, organizado** — sem verbosidade nem complexidade especulativa. Ver `project-core.mdc`.
+
+**Fluxo:** `Routes → Controller → Service → [Action?] → Repository`
+
+- `Action` só com efeito além do repositório.
+- Skill: `.cursor/skills/backend-orchestrator/SKILL.md`
+- Norma: `docs/16-estrutura-de-pastas.md`, `docs/05-arquitetura.md`, `docs/08-api-v1.md`
+
+## Rules por camada
+
+| Camada | Rule |
+|--------|------|
+| Models (domínio) | `rules/backend-models.mdc` |
+| Types | `rules/backend-types.mdc` |
+| Enum | `rules/backend-enum.mdc` |
+| Schema (Zod) | `rules/backend-schema.mdc` |
+| Repository | `rules/backend-repository.mdc` |
+| Action | `rules/backend-action.mdc` |
+| Service | `rules/backend-service.mdc` |
+| Controller | `rules/backend-controller.mdc` |
+| Routes | `rules/backend-routes.mdc` |
+| API registration | `rules/backend-api-registration.mdc` |
+| Modules (BC / `*_public`) | `rules/backend-modules.mdc` |
+| Workers / Jobs | `rules/backend-workers.mdc` |
+| Shared (provisório) | `rules/backend-shared.mdc` |
+
+## Regras transversais bloqueantes
+
+- Parâmetro `<entidade>Schema` tipado — **proibido** `data` genérico.
+- Classe curta sem prefixo da entidade (`CreateService`).
+- Arquivo `snake_case` (`customer_create.service.ts`).
+- Ops: `list` / `get` / `create` / `update` / `delete` (+ `get_by_<uk>`, verbos de domínio).
+- Repository: Prisma via `TenantPrisma`; um arquivo por operação.
+- Service: sem Express/Prisma Client direto; fluxo no `execute`.
+- Controller: fino — parse Zod → service → resposta.
+- Tipagens em `types/`; enums em `enum/`; **sem** pasta `interfaces/`.
+- Cruzar módulo só por `<dominio>_public.ts`.
+- Uma operação = um arquivo = uma responsabilidade; sem god service/repository.
+- Preferir o caminho mais curto que preserve as camadas — não inventar Action/port/helper “por padrão”.

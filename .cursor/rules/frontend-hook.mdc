@@ -1,0 +1,36 @@
+---
+description: Frontend Hook — TanStack Query por ação + FormHook
+globs: frontend/src/packages/**/hooks/**/*
+alwaysApply: false
+---
+
+# Frontend — Hook
+
+**Fluxo:** Component → Hook → Service → Data → API
+
+## Por tipo (obrigatório)
+
+### List / Get (`useCustomerListHook`, `useCustomerGetHook`)
+
+- `useQuery` com `queryKey` estável (`['customers', 'list', query]`).
+- `queryFn` chama Service — nunca Data/API direto.
+
+### Create / Update / Delete (`useCustomerCreateHook`, …)
+
+- `useMutation` com `mutationFn` = Service.
+- `onSuccess`: `invalidateQueries` nas keys da entidade.
+- Mutação otimista (agenda) com rollback no próprio hook.
+
+### FormHook (`useCustomerFormHook`)
+
+- Centraliza `useForm`, `defaultValues`, `zodResolver(schema)`.
+- **Não** coloca `useForm` no JSX do Form/FormDialog.
+- **Não** faz fetch.
+
+## Proibido
+
+- CollectionHook obrigatório estilo Orius (substituído por TanStack Query).
+- Chamar API/`fetch` direto.
+- Lógica de reset do form dentro do FormHook (reset no componente).
+
+Norma: `docs/09`, `docs/16`.

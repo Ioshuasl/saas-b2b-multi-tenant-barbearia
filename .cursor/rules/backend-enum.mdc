@@ -1,0 +1,26 @@
+---
+description: Backend Enum — enums e mapas const tipados do módulo
+globs: backend/src/modules/**/enum/**/*
+alwaysApply: false
+---
+
+# Backend — Enum
+
+## Caminho
+
+`backend/src/modules/<dominio>/enum/<entidade>/<nome>.enum.ts`
+
+## Obrigatório
+
+- Enums TypeScript ou objetos `as const` + tipo derivado.
+- Valores alinhados ao banco/API em `SCREAMING_SNAKE_CASE` quando forem status/códigos de domínio.
+- Um conceito por arquivo; nome exportado claro (`CustomerOrigin`).
+
+## Proibido
+
+- Lógica de negócio.
+- Tipagens de DTO/ports — vão em `types/`.
+
+Exemplo: `enum/customer/customer_origin.enum.ts`.
+
+Norma: `docs/16-estrutura-de-pastas.md`, `docs/15-glossario.md`.

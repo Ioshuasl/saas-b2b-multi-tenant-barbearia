@@ -1,0 +1,24 @@
+---
+description: Frontend Service — thin wrapper sobre Data
+globs: frontend/src/packages/**/services/**/*
+alwaysApply: false
+---
+
+# Frontend — Service
+
+## Caminho
+
+`frontend/src/packages/<area>/services/<Entidade>/CustomerListService.ts`
+
+## Obrigatório
+
+- Chama apenas Data da mesma ação.
+- Sem montar URL / sem `fetch` direto.
+- PascalCase: `CustomerCreateService.ts`.
+
+## Proibido
+
+- TanStack Query (fica no Hook).
+- Regra de domínio do servidor.
+
+Norma: `docs/09`, `docs/16`.

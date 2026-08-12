@@ -1,0 +1,30 @@
+---
+description: Frontend Component Index — orquestra Table/Dialogs com hooks TanStack Query
+globs: frontend/src/packages/**/components/**/*Index.tsx
+alwaysApply: false
+---
+
+# Frontend — Component Index
+
+## Obrigatório
+
+- Orquestra Header, Table, FormDialog/dialogs e hooks — **não** chama API/Data/Service.
+- Lista: `useCustomerListHook` (TanStack Query); Table recebe `data` do `query.data`.
+- Após create/update/delete: invalidação via Mutation hooks (não refetch manual espalhado).
+- Modais só montam quando abertos:
+
+```tsx
+{isConfirmOpen && <ConfirmDialog ... />}
+{isFormOpen && <CustomerFormDialog ... />}
+```
+
+- Repassa callbacks aos filhos (`onEdit`, `onDelete`, …).
+
+## Proibido
+
+- Montar payload/endpoint/`fetch`.
+- CollectionHook obrigatório estilo Orius.
+- Sempre renderizar FormDialog fechado.
+- Nomear modal como `*Form` — modal é `*FormDialog`.
+
+Norma: `docs/09`, `docs/16`.
