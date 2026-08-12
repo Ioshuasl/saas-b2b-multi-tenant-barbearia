@@ -35,9 +35,15 @@ Planejamento do MVP. Numeração alinhada ao prontuário odontológico de refer�
 - [ADR-0011 — UUID v7 na aplicação](./adr/0011-uuid-v7-aplicacao.md) ✅
 - Demais ADRs (BullMQ, envelope, Hostinger, Resend, WhatsApp, billing, observabilidade, KMS, EasyPanel) → Parte 4
 
+### Requisitos (Parte 3 ✅)
+
+Catálogo rastreável — ver [requisitos/README.md](./requisitos/README.md).
+
+- **Funcionais:** [Identidade](./requisitos/funcionais/01-identidade-acesso.md) · [Rede/unidades](./requisitos/funcionais/02-rede-unidades-cadastros.md) · [Clientes](./requisitos/funcionais/03-clientes.md) · [Agenda](./requisitos/funcionais/04-agenda.md) · [Financeiro](./requisitos/funcionais/05-financeiro.md) · [WhatsApp](./requisitos/funcionais/06-whatsapp-notificacoes.md) · [Relatórios](./requisitos/funcionais/07-relatorios.md) · [Billing SaaS](./requisitos/funcionais/08-billing-saas.md) · [Plataforma/LGPD](./requisitos/funcionais/09-plataforma-lgpd.md)
+- **Não funcionais:** [RNF](./requisitos/nao-funcionais/requisitos-nao-funcionais.md) · [OWASP](./requisitos/nao-funcionais/RNF-seguranca-owasp.md)
+
 ### Pastas ainda pendentes
 
-- `docs/requisitos/` — RF + RNF (Parte 3)
 - `docs/modulos/` — detalhamento por bounded context (Parte 2)
 - `docs/pesquisa/` — material legado preservado (billing, provedores, WhatsApp, ADRs inline antigos)
 
