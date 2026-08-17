@@ -1,4 +1,6 @@
-# 08 — Billing e Planos
+# Pesquisa — Billing e Planos (hipótese)
+
+> Hipótese de empacotamento. Comparativo de mercado atualizado em [02 — Benchmark](../02-benchmark-mercado.md). Cobrança **manual no MVP**: [ADR-0010](../adr/0010-billing-saas-manual-mvp.md). Candidatos de gateway: [pesquisa/provedores-pagamento.md](./provedores-pagamento.md).
 
 ## Modelo de cobrança
 
@@ -59,7 +61,7 @@ O back-office precisa de uma fila "tenants a cobrar" com dias em atraso, valor, 
 
 ## Provedor de pagamento
 
-Ainda **não escolhido**. Requisitos, comparativo de taxas (Asaas, Iugu, Pagar.me, Vindi, Stripe, Mercado Pago), simulação de custo e a interface `PaymentProvider` que mantém a decisão reversível estão em **[13 — Provedores de Pagamento](13-provedores-pagamento.md)**.
+Ainda **não escolhido** para a fase 2. Comparativo legado: [provedores-pagamento.md](./provedores-pagamento.md). MVP: adapter manual ([ADR-0010](../adr/0010-billing-saas-manual-mvp.md)).
 
 ## Regras de implementação
 
@@ -72,4 +74,4 @@ Ainda **não escolhido**. Requisitos, comparativo de taxas (Asaas, Iugu, Pagar.m
 6. Feature flags por plano lidas de uma tabela `plan_features`, nunca hardcoded em `if plan == 'pro'` espalhado.
 
 ## Métricas de billing a instrumentar desde o dia 1
-MRR, novos MRR/churn/expansão (unidade extra é a principal alavanca de expansão), conversão trial→pago, tempo até primeira cobrança, inadimplência (% PAST_DUE + NEGOTIATING), tempo médio de recuperação após negociação, LTV estimado. Ver [11](11-metricas.md).
+MRR, novos MRR/churn/expansão (unidade extra é a principal alavanca de expansão), conversão trial→pago, tempo até primeira cobrança, inadimplência (% PAST_DUE + NEGOTIATING), tempo médio de recuperação após negociação, LTV estimado. Ver [14 — Métricas](../14-metricas-kpis.md).

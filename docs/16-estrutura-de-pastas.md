@@ -39,7 +39,9 @@ backend/src/
 │   ├── config/
 │   ├── database/                # prisma, tenant-prisma (RLS), unit-of-work, outbox
 │   ├── middlewares/
-│   ├── integrations/            # whatsapp, email, storage, PaymentProvider
+│   ├── integrations/            # whatsapp (WAHA), email (Resend), PaymentProvider
+│   ├── crypto/                  # KeyManagementPort + envelope AES-GCM
+│   ├── storage/                 # ObjectStorage port (MinIO/S3 + fake)
 │   ├── queue/
 │   ├── domain/                  # kernel: EntityId, TenantId, DomainEvent, erros base
 │   └── helpers/

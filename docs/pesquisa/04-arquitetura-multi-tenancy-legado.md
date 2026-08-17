@@ -1,4 +1,6 @@
-# 04 — Arquitetura e Multi-Tenancy
+# 04 — Arquitetura e Multi-Tenancy (legado)
+
+> **Arquivado.** Versão vigente: [05 — Arquitetura](../05-arquitetura.md), [06 — Infra](../11-infra-devops.md), [07 — Modelo de Dados](../07-modelo-de-dados.md). Este texto cita **Sequelize** e numeração antiga — **não** guiar implementação.
 
 ## Decisão central: estratégia de isolamento
 

@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | RF-E1-01 | Visitante cria barbearia (signup) com e-mail, senha, nome da rede e telefone; o sistema cria Tenant, Location padrão (`is_default`) e usuário `OWNER` em uma única operação atômica | Must | US-01, J1 |
 | RF-E1-02 | Sistema rejeita e-mail já cadastrado no tenant com `409` sem revelar se o e-mail pertence a outro tenant | Must | US-01 |
-| RF-E1-03 | Senha mínima de 8 caracteres, verificada contra lista de senhas vazadas; armazenamento com Argon2id | Must | doc 10, RNF-SEC |
+| RF-E1-03 | Senha mínima de **10 caracteres**, verificada contra lista de senhas vazadas; armazenamento com Argon2id | Must | doc 10, RNF-SEC |
 | RF-E1-04 | Usuário autentica com e-mail/senha e recebe access token JWT (TTL 15 min) + refresh token rotativo em cookie httpOnly | Must | J3, doc 06/08 |
 | RF-E1-05 | Reuso de refresh token revoga toda a família de tokens e registra alerta de segurança | Must | doc 10 |
 | RF-E1-06 | Após 5 tentativas de login falhas por minuto (IP+e-mail), o sistema aplica rate limit / bloqueio temporário | Must | doc 08 |

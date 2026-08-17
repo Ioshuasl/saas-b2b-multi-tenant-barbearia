@@ -1,6 +1,8 @@
 # 14 — WhatsApp: Evolution API agora, API oficial depois
 
-**Decisão do projeto:** em desenvolvimento e testes usamos a **Evolution API** (não oficial). Migração para API oficial planejada. Este documento define como fazer isso sem retrabalho e compara provedores oficiais por custo-benefício.
+> **Supersedido.** Decisão vigente: [ADR-0016](../adr/0016-waha-default-messaging.md) (WAHA GOWS). Pesquisa atual: [whatsapp-provedores-self-hosted.md](./whatsapp-provedores-self-hosted.md). O texto abaixo é legado e **não** deve guiar implementação.
+
+**Decisão do projeto (histórica):** em desenvolvimento e testes usamos a **Evolution API** (não oficial). Migração para API oficial planejada. Este documento define como fazer isso sem retrabalho e compara provedores oficiais por custo-benefício.
 
 ## Fase 1 — Evolution API (dev/teste)
 

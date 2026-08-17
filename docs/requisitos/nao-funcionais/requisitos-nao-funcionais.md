@@ -26,7 +26,7 @@ Derivados de [04](../../04-escopo-mvp.md), [10](../../10-seguranca-lgpd-complian
 | RNF-AVL-01 | Disponibilidade mensal ≥ 99,5% no MVP | Must | doc 14 |
 | RNF-AVL-02 | Processos API e worker stateless, escaláveis horizontalmente | Must | doc 05/11 |
 | RNF-AVL-03 | Indisponibilidade do WhatsApp não impede agendar; e-mail cobre; UI avisa | Must | RF-E6-03 |
-| RNF-AVL-04 | Sessão Evolution/WAHA desconectada gera alerta (enquanto em uso) | Must | doc 11/14 |
+| RNF-AVL-04 | Sessão WAHA desconectada gera alerta (enquanto em uso) | Must | doc 11/14, ADR-0016 |
 | RNF-AVL-05 | Rolling update com health/readiness antes de receber tráfego | Must | doc 11 |
 | RNF-AVL-06 | Deploys preferencialmente fora do pico de agendamentos | Should | operação |
 
@@ -51,7 +51,7 @@ Derivados de [04](../../04-escopo-mvp.md), [10](../../10-seguranca-lgpd-complian
 | --- | --- | --- | --- |
 | RNF-SEC-01 | TLS 1.2+ em trânsito; HSTS; redirect HTTP→HTTPS | Must | doc 10 |
 | RNF-SEC-02 | Criptografia em repouso no banco e object storage | Must | doc 10 |
-| RNF-SEC-03 | Senhas Argon2id; mínimo 8 caracteres; checagem de senhas vazadas | Must | RF-E1-03 |
+| RNF-SEC-03 | Senhas Argon2id; mínimo 10 caracteres; checagem de senhas vazadas | Must | RF-E1-03 |
 | RNF-SEC-04 | Access JWT 15 min + refresh rotativo httpOnly; detecção de reuso | Must | doc 10 |
 | RNF-SEC-05 | Autorização no servidor: papel + unidade + escopo `staff_id` | Must | doc 10 |
 | RNF-SEC-06 | Isolamento por RLS; role sem `BYPASSRLS`; `SET LOCAL` por transação (Prisma/`TenantPrisma`) | Must | ADR-0002 |
@@ -160,7 +160,7 @@ Derivados de [04](../../04-escopo-mvp.md), [10](../../10-seguranca-lgpd-complian
 | RNF-OBS-01 | Logs JSON (Pino) com `requestId`, `tenantId`, `locationId`, `userId` | Must | doc 11 |
 | RNF-OBS-02 | Erros agregados (Sentry) com scrubbing de PII | Must | doc 11 |
 | RNF-OBS-03 | Métricas: latência, 5xx, fila, falhas WhatsApp/e-mail, lag outbox, sessão WA | Must | doc 11/14 |
-| RNF-OBS-04 | Alertas: 5xx, p95, fila atrasada, webhook billing, sessão Evolution/WAHA, reconciliação | Must | doc 11 |
+| RNF-OBS-04 | Alertas: 5xx, p95, fila atrasada, sessão WAHA, falha de backup | Must | doc 11 |
 | RNF-OBS-05 | Instrumentação de produto (PostHog ou equivalente) com eventos do doc 14 | Must | doc 14 |
 | RNF-OBS-06 | Tracing distribuído (OpenTelemetry) | Could (fase 2) | doc 11 |
 

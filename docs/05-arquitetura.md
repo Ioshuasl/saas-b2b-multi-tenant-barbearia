@@ -37,7 +37,7 @@ Monólito modular deployado como uma única aplicação Node.js, com módulos in
                                      │ Worker (mesmo código)│  consumidores de fila
                                      └──────┬───────────────┘
                                             │
-        WhatsApp (Evolution/WAHA em dev → API oficial depois) · e-mail (Resend) · storage · PaymentProvider
+        WAHA (GOWS) · e-mail (Resend) · S3 sa-east-1 · Sentry
 ```
 
 Duas execuções do **mesmo artefato**: processo `api` (HTTP) e processo `worker` (filas/cron). Isso mantém um único deploy conceitual sem acoplar latência de request a trabalho assíncrono.
@@ -430,7 +430,9 @@ Fluxo: Action grava agregado **e** registro na tabela `outbox_event` na mesma tr
 │   │   │   ├── config/           # env schema (Zod), constantes
 │   │   │   ├── database/         # prisma client, tenant-prisma (RLS), unit-of-work, outbox
 │   │   │   ├── middlewares/      # auth, tenant, error handler, rate limit, requestId
-│   │   │   ├── integrations/     # whatsapp, storage S3, e-mail, PaymentProvider
+│   │   │   ├── integrations/     # WAHA, Resend, PaymentProvider (manual no MVP)
+│   │   │   ├── crypto/           # KeyManagementPort + envelope AES-GCM
+│   │   │   ├── storage/          # ObjectStorage (MinIO/S3)
 │   │   │   ├── queue/            # filas BullMQ, dispatcher do outbox, scheduler
 │   │   │   ├── domain/           # kernel: EntityId, TenantId, DomainEvent, erros base
 │   │   │   └── helpers/          # puro e reutilizável: datas, moeda, telefone, id
@@ -507,14 +509,16 @@ Injeção manual por construtor: explícita, tipada, sem decorators nem containe
 | Consultas complexas/relatório | SQL cru via `$queryRaw` tipado ou views | ORM não é bom para relatório; view é contrato |
 | Filas/cron | BullMQ + Redis ([ADR-0006](./adr/0006-filas-bullmq.md)) | Retry, backoff, delayed jobs (lembrete 24h/2h) |
 | Autenticação | JWT curto + refresh rotativo httpOnly | Sem sessão em memória |
-| Storage | S3-compatível com URL pré-assinada | Logos/fotos; upload não passa pela API |
-| Logs | Pino (JSON) com `requestId`/`tenantId`/`locationId`/`userId` | Correlação e agregação |
+| Storage | AWS S3 `sa-east-1` com URL pré-assinada ([ADR-0008](./adr/0008-hospedagem-vps-hostinger-s3.md)) | Logos/fotos; upload não passa pela API |
+| Logs | Pino (JSON) com `requestId`/`tenantId`/`locationId`/`userId` ([ADR-0012](./adr/0012-observabilidade-sentry-logs.md)) | Correlação; Sentry para erros |
 | Erros | Hierarquia `DomainError`/`ApplicationError`/`InfraError` + handler central | Mapeamento consistente para HTTP |
 | Datas | UTC no banco, timezone **da unidade** na borda; `date-fns-tz` | Rede pode cruzar fusos |
 | Dinheiro | Inteiro em centavos, nunca `float` | Precisão |
 | IDs | UUID v7 gerado na **aplicação** (`IdGenerator`) | Ordenável por tempo ([ADR-0011](./adr/0011-uuid-v7-aplicacao.md)) |
-| Pagamentos SaaS | Interface `PaymentProvider` (Stripe / Asaas / Mercado Pago); primeiros tenants com billing manual | Decisão E |
-| WhatsApp | Evolution API ou WAHA em dev; API oficial depois — atrás de `WhatsAppProvider` | Decisão D (escolha Evolution×WAHA pendente) |
+| Pagamentos SaaS | **Manual no MVP** ([ADR-0010](./adr/0010-billing-saas-manual-mvp.md)); candidatos Stripe / Mercado Pago / Asaas | Sem checkout até novo ADR |
+| WhatsApp | **WAHA GOWS** default ([ADR-0016](./adr/0016-waha-default-messaging.md)); Cloud API só por env; e-mail Resend fallback ([ADR-0009](./adr/0009-email-resend.md)) | Atrás de `MessagingProvider` |
+| Hospedagem | VPS Hostinger + EasyPanel ([ADR-0008](./adr/0008-hospedagem-vps-hostinger-s3.md), [ADR-0014](./adr/0014-deploy-easypanel-dominios.md)) | Postgres/Redis na mesma VPS |
+| Criptografia | Envelope AES-256-GCM por tenant ([ADR-0007](./adr/0007-criptografia-envelope-tenant.md)); KEK local ([ADR-0013](./adr/0013-kms-local-vps.md)) | `shared/crypto/` |
 | Testes | Vitest + Supertest + Testcontainers (Postgres) + Playwright (e2e) | Testar RLS exige banco real |
 | Docs de API | OpenAPI gerado dos schemas Zod (`zod-to-openapi`) + Scalar/Swagger UI | Documentação que não mente |
 

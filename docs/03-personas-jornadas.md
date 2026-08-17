@@ -1,86 +1,96 @@
-# 02 — Personas e Jornadas
+# 03 — Personas e Jornadas
 
-## Personas
+## 1. Personas
 
-### 1. Dono da barbearia (`OWNER`) — comprador e admin
-Tem 2–6 cadeiras (e, em parte dos casos, **mais de uma unidade**), corta cabelo também. Usa celular Android, pouca paciência para configuração. Decide a compra sozinho.
-**Dor principal:** não sabe quanto entrou no mês nem quanto deve de comissão.
-**Sucesso para ele:** abrir o sistema e ver "hoje: 18 agendamentos, R$ 940".
+### P1 — Marcos, dono da barbearia (`OWNER`) — comprador e admin
 
-### 2. Barbeiro / profissional (`STAFF`) — usuário diário
-Quer só saber quem é o próximo cliente e a que horas. Não configura nada.
-**Sucesso:** agenda do dia em uma tela, sem login complicado.
+- 2–6 cadeiras; em parte dos casos **2+ unidades**. Android, pouca paciência para configuração. Decide a compra sozinho.
+- **Dor:** não sabe quanto entrou no mês nem quanto deve de comissão.
+- **Sucesso:** abrir o sistema e ver "hoje: 18 agendamentos, R$ 940".
 
-### 3. Recepcionista (`RECEPTIONIST`) — opcional, barbearias maiores
-Marca por telefone/balcão, remarca, cancela, registra pagamento. Escopo restrito à unidade onde trabalha.
+### P2 — Rafa, barbeiro (`STAFF`) — usuário diário
 
-### 3b. Gerente de unidade (`MANAGER`) — em redes
-O dono delega a operação de uma loja. Vê e administra **apenas as unidades do seu escopo** (`user_locations`): agenda, equipe, horários e o relatório daquela unidade. Não vê o consolidado da rede nem mexe em billing.
+- Quer saber quem é o próximo e a que horas. Não configura nada.
+- **Sucesso:** agenda do dia em uma tela; login cai direto nela.
 
-### 4. Cliente final (`CUSTOMER`) — não é usuário pago
-Chega pelo link no Instagram/WhatsApp da barbearia. Não tem conta; identifica-se por telefone.
-**Sucesso:** escolher serviço → barbeiro → horário → confirmar, em ≤ 4 telas.
+### P3 — Carla, recepcionista (`RECEPTIONIST`) — opcional
 
-### 5. Operador da plataforma (`PLATFORM_ADMIN`) — nós
-Vê tenants, assinaturas, suporte, e faz impersonation para dar suporte (com auditoria).
+- Marca por telefone/balcão, remarca, cancela, registra pagamento. Escopo só da unidade em `user_locations`.
 
-## Jornadas
+### P4 — Fernanda, gerente de unidade (`MANAGER`) — redes
+
+- Opera uma ou mais lojas. Vê agenda, equipe e relatório **das unidades do escopo**. Não vê consolidado da rede nem billing.
+
+### P5 — Cliente final (`Customer`) — não é usuário pago
+
+- Chega pelo link no Instagram/WhatsApp. Identifica-se por telefone (E.164).
+- **Sucesso:** serviço → profissional ou "qualquer um" → horário → nome + telefone → confirmar (≤ 4 telas).
+
+### P6 — Operador da plataforma (`platform_admin`) — nós
+
+- Tenants, assinaturas, fila de cobrança, impersonation auditada (somente leitura no MVP).
+
+## 2. Jornadas
 
 ### J1 — Onboarding do tenant (self-service, meta ≤ 10 min)
-1. Dono acessa o site, clica em "Criar conta grátis".
-2. Informa: nome da barbearia, e-mail, senha, telefone → cria `tenant` + **primeira unidade** + usuário `OWNER`.
-3. Escolhe o **slug** público (`/minha-barbearia`), com sugestão automática e validação de disponibilidade.
-4. Wizard em 4 passos:
-   - **Horário de funcionamento** (por dia da semana, com pré-preenchimento seg–sáb 9h–19h).
-   - **Serviços** (pré-carregados: Corte R$40/30min, Barba R$30/20min, Corte+Barba R$60/50min — editáveis).
-   - **Profissionais** (o próprio dono já entra como profissional; pode convidar outros por e-mail/link).
-   - **Publicar** → mostra o link público e um QR Code para imprimir/colocar no Instagram.
-5. Trial de 14 dias inicia automaticamente. Nenhum cartão exigido.
-6. *(Opcional, redes)* "Adicionar unidade" repete horário/equipe — o catálogo de serviços é herdado da rede, e cada unidade ganha o próprio link e QR Code. **Nada disso aparece para quem tem uma loja só.**
 
-**Critério de sucesso:** ≥ 60% das contas criadas chegam ao passo "Publicar".
+1. "Criar conta grátis" → nome da rede, e-mail, senha, telefone → `tenant` + **location** padrão + `OWNER`.
+2. Slug público (`/minha-barbearia`) com validação e sugestão.
+3. Wizard em 4 passos: horário → serviços (pré-carregados) → profissionais → publicar (link + QR).
+4. Trial 14 dias, sem cartão.
+5. *(Redes)* "Adicionar unidade" herda catálogo; link e QR por loja. **Oculto com uma unidade só.**
 
-### J2 — Agendamento pelo cliente final (público, sem login)
-1. Abre `app.com/minha-barbearia` — com mais de uma unidade, escolhe primeiro a loja (nome, endereço, distância); com uma só, vai direto.
-2. Vê serviços com preço e duração → escolhe um (ou mais, somando duração).
-3. Escolhe profissional ou "qualquer um disponível".
-4. Vê grade de horários disponíveis dos próximos 30 dias (slots calculados a partir de horário de funcionamento − bloqueios − agendamentos existentes).
-5. Informa nome + telefone (WhatsApp).
-6. Confirma → recebe confirmação na tela + mensagem (WhatsApp/e-mail conforme [03](03-escopo-mvp.md)).
-7. Link de cancelamento/remarcação com token, válido até X horas antes.
+**Critério:** ≥ 60% das contas chegam ao passo "Publicar" ([doc 14](./14-metricas-kpis.md)).
 
-**Regra crítica:** dois clientes escolhendo o mesmo slot simultaneamente — o segundo recebe erro `SLOT_TAKEN` e a grade recarrega. Garantido por constraint de exclusão no banco, não só por checagem em aplicação.
+### J2 — Agendamento público (sem login, sem OTP)
+
+1. `/{tenant}` — várias unidades → seletor; uma só → redirect para `/{tenant}/{location}`.
+2. Serviço(s) → profissional ou qualquer um → grade (30 dias, lead time da unidade).
+3. Nome + telefone + consentimento LGPD.
+4. Confirmação na tela + mensagem (WhatsApp e/ou e-mail — [04 — Escopo](./04-escopo-mvp.md) E6).
+5. Link de cancelamento/remarcação por token até o prazo da unidade.
+
+**Regra crítica:** concorrência no mesmo slot → `409 SLOT_TAKEN` + grade recarrega; garantido por `EXCLUDE` no Postgres.
 
 ### J3 — Dia a dia do barbeiro
-1. Login → cai direto na **Agenda de hoje** (visão dia, só os próprios atendimentos se for `STAFF`). Se atende em mais de uma unidade, vê os atendimentos das duas na mesma linha do tempo, com a unidade indicada.
-2. Marca atendimento como `EM_ATENDIMENTO` → `CONCLUÍDO`, ou `NO_SHOW`.
-3. Ao concluir, registra forma de pagamento e valor efetivo (pode divergir do preço tabelado).
+
+1. Login → **agenda de hoje** (`STAFF` só os próprios atendimentos).
+2. Status: `SCHEDULED` → `CONFIRMED` → `IN_SERVICE` → `COMPLETED`, ou `NO_SHOW` / `CANCELLED`.
+3. Ao concluir: forma de pagamento e valor (pode divergir do tabelado).
 
 ### J4 — Gestão do dono
-1. Seletor de unidade no topo (oculto quando há uma só).
-2. Agenda em visão semana/dia, de todos os profissionais da unidade (colunas por profissional).
-3. Criar agendamento manual (cliente que ligou) e bloqueio (almoço, folga, feriado).
-4. Relatório do período por unidade **ou consolidado da rede**: faturamento, nº de atendimentos, taxa de no-show, ranking de serviços, comissão por profissional.
-5. Configurações: unidades, serviços, profissionais, horários, dados da página pública, assinatura.
 
-### J5 — Assinatura
-1. Durante o trial, banner com dias restantes.
-2. Dia 12: e-mail de aviso. Dia 14: fim do trial.
-3. Sem pagamento → `PAST_DUE`, **sem desativar nada de imediato**: a plataforma entra em contato e negocia um prazo (`NEGOTIATING`, com `grace_until`). A página pública só sai do ar depois de esgotado o prazo acordado — não prejudicar a barbearia é decisão de negócio. Detalhe em [08](08-billing-planos.md). Dados nunca apagados antes de 90 dias.
+1. Seletor de unidade (oculto se 1).
+2. Agenda semana/dia; agendamento manual; bloqueios.
+3. Relatório por unidade ou consolidado; comissão.
+4. Configurações: unidades, serviços, profissionais, WhatsApp (QR + ciência), assinatura.
 
-## Matriz de permissões (RBAC)
+### J5 — Assinatura SaaS
 
-`OWNER` vê toda a rede. Os demais papéis são limitados às unidades listadas em `user_locations` — a coluna abaixo já pressupõe esse recorte.
+1. Banner de trial (dias restantes); aviso D-2 por e-mail.
+2. Fim do trial → `PAST_DUE`; **sem checkout** — operação ativa manualmente ([ADR-0010](./adr/0010-billing-saas-manual-mvp.md)).
+3. Contato humano + `grace_until` antes de `SUSPENDED`. Página pública off só em `SUSPENDED`. Exportação sempre possível; purge após retenção ([modulos/08-billing-saas.md](./modulos/08-billing-saas.md)).
+
+## 3. Matriz RBAC
+
+`OWNER` vê a rede inteira. Demais papéis: escopo em `user_locations`. Recurso fora do escopo → **404**.
 
 | Ação | OWNER | MANAGER | STAFF | RECEPTIONIST |
-|---|:--:|:--:|:--:|:--:|
-| Ver agenda de todos | ✅ (rede) | ✅ (suas unidades) | ❌ (só a própria) | ✅ (sua unidade) |
+| --- | :-: | :-: | :-: | :-: |
+| Ver agenda (todos vs própria) | ✅ rede | ✅ unidades | ❌ só própria | ✅ unidade |
 | Gerenciar unidades | ✅ | ❌ | ❌ | ❌ |
-| Ver relatório consolidado da rede | ✅ | ❌ | ❌ | ❌ |
-| Criar/editar agendamento de qualquer um | ✅ | ✅ | ❌ | ✅ |
-| Alterar status do próprio atendimento | ✅ | ✅ | ✅ | ✅ |
-| CRUD de serviços | ✅ | ✅ | ❌ | ❌ |
-| CRUD de profissionais / convites | ✅ | ✅ | ❌ | ❌ |
-| Ver relatórios financeiros | ✅ | ✅ | ❌ (só própria comissão) | ❌ |
-| Gerenciar assinatura/billing | ✅ | ❌ | ❌ | ❌ |
-| Configurar página pública | ✅ | ✅ | ❌ | ❌ |
+| Relatório consolidado | ✅ | ❌ | ❌ | ❌ |
+| CRUD agendamento alheio | ✅ | ✅ | ❌ | ✅ |
+| Status do próprio atendimento | ✅ | ✅ | ✅ | ✅ |
+| CRUD serviços / profissionais | ✅ | ✅ | ❌ | ❌ |
+| Relatório financeiro | ✅ | ✅ | ❌ (só comissão própria) | ❌ |
+| Billing SaaS | ✅ | ❌ | ❌ | ❌ |
+| Conectar WhatsApp | ✅ | ❌ | ❌ | ❌ |
+
+Detalhe de permissões: [modulos/01-identidade-acesso.md](./modulos/01-identidade-acesso.md).
+
+## Referências
+
+- [04 — Escopo do MVP](./04-escopo-mvp.md)
+- [15 — Glossário](./15-glossario.md) (códigos de status e papéis)
+- [08 — API v1](./08-api-v1.md) (matriz de endpoints)

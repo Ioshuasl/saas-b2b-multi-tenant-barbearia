@@ -1,144 +1,137 @@
-# 03 — Escopo do MVP
+# 04 — Escopo do MVP
 
-Critério de corte: **entra no MVP apenas o que é necessário para uma barbearia real substituir o caderno + WhatsApp e pagar por isso.**
+## 1. Objetivo do MVP
 
-## Dentro do MVP
+> Permitir que uma barbearia real **substitua o caderno + WhatsApp manual** no ciclo: publicar link → cliente agenda → lembrete → barbeiro opera o dia → dono fecha o mês com relatório e comissão — e pague assinatura SaaS.
 
-### E1 — Contas, tenants e unidades
-- Cadastro self-service de barbearia (cria tenant + primeira unidade + OWNER).
-- Login por e-mail/senha, recuperação de senha, verificação de e-mail.
-- Convite de profissional por link/e-mail, com escopo de unidade.
-- Slug público único e editável (com redirect do antigo por 30 dias).
+Critério de "MVP pronto": **3 barbearias piloto** usam o sistema por **2 semanas** em produção sem incidente de dados; o dono opera o dia a dia sem caderno paralelo.
 
-### E1b — Multi-unidade (rede)
-- CRUD de unidades: nome, endereço, telefone, timezone, slug próprio, foto.
-- **Seletor de unidade no painel** (some quando há só uma) e escopo de acesso por usuário (`user_locations`).
-- Página pública por unidade (`/{tenant}/{unidade}`) e página raiz com seletor.
-- Profissional vinculado a uma ou mais unidades, com jornada por unidade.
-- Catálogo de serviços da rede com ativação e preço sobrescrito por unidade.
-- Relatórios com filtro por unidade e visão consolidada da rede.
-- Base de clientes única na rede, com histórico mostrando em qual unidade cada atendimento ocorreu.
+Numeração de épicos alinhada a [requisitos/](./requisitos/README.md).
 
-> Barbearia de uma unidade só não vê nada disso: a unidade padrão é criada no onboarding e a UI de rede fica oculta. Multi-unidade **não pode** encarecer a experiência de quem tem uma loja — esse é o critério de aceite mais importante do épico.
+## 2. Dentro do escopo
 
-### E2 — Cadastros
-- **Serviços:** nome, duração (min), preço, ativo/inativo, cor, quais profissionais executam, quais unidades oferecem.
-- **Profissionais:** nome, foto, papel, unidade(s), horário de trabalho próprio por unidade, % de comissão.
-- **Horário de funcionamento:** por unidade e por dia da semana, com intervalos (ex.: 9–12 e 13–19).
-- **Bloqueios:** folga, férias, almoço, feriado — pontuais ou recorrentes, por unidade ou por profissional.
+### E1 — Identidade e acesso
 
-### E3 — Agenda
-- Visão **dia** (colunas por profissional, dentro da unidade selecionada) e **semana**.
-- Criar/editar/cancelar agendamento manual.
-- Estados: `AGENDADO → CONFIRMADO → EM_ATENDIMENTO → CONCLUIDO`, mais `CANCELADO` e `NO_SHOW`.
-- Prevenção de conflito de horário garantida no banco.
+- Signup self-service (tenant + location padrão + `OWNER`).
+- Login e-mail/senha, refresh, recuperação e verificação de e-mail.
+- Convite com escopo de unidade; RBAC (`OWNER`, `MANAGER`, `STAFF`, `RECEPTIONIST`).
+- Slug público único; redirect do antigo 30 dias.
 
-### E4 — Página pública de agendamento
-- Rota `/{tenant}/{unidade}` com nome, logo, endereço, serviços e horários; `/{tenant}` mostra o seletor de unidades (ou redireciona quando há só uma).
-- Fluxo de agendamento sem login (nome + telefone).
-- Link de cancelamento/remarcação por token.
-- Responsivo mobile-first (90%+ do tráfego será celular).
+### E2 — Rede, unidades e cadastros
 
-### E5 — Notificações
-- Confirmação de agendamento e lembrete 24h e 2h antes.
-- Canal do MVP: **e-mail (sempre, fallback obrigatório) + WhatsApp**. Em dev/teste/piloto, WhatsApp via **Evolution API**; migração para API oficial planejada atrás da mesma interface. Riscos, regras de uso e comparativo de provedores oficiais em [14](14-whatsapp-notificacoes.md).
+- CRUD de unidades (timezone, slug, booking flags); seletor oculto com 1 unidade.
+- `user_locations`; catálogo de serviços da rede + override por unidade (`location_services`).
+- Profissionais (`staff`, `staff_locations`, comissão %, jornada por unidade).
+- Horários e bloqueios (RRULE); wizard de onboarding ≤ 4 passos.
 
-### E6 — Clientes
-- Cadastro automático do cliente final na primeira reserva (chave: `tenant_id` + telefone normalizado E.164) — base única na rede.
-- Listagem com histórico de atendimentos (com a unidade de cada um) e total gasto.
+> Loja única não vê UI de rede — critério de aceite mais importante de E2.
 
-### E7 — Financeiro básico
-- Registro de pagamento ao concluir atendimento (dinheiro, pix, débito, crédito).
-- Relatório do período: faturamento, nº atendimentos, ticket médio, no-show, top serviços, comissão por profissional — por unidade e consolidado.
+### E3 — Clientes
+
+- Base única na rede; chave `(tenant_id, phone E.164)`.
+- Criação automática na primeira reserva; histórico com unidade de cada atendimento.
+- `marketing_opt_in` separado; sem CPF no MVP.
+
+### E4 — Agenda e página pública
+
+- Visão dia/semana; CRUD manual; estados: `SCHEDULED` → `CONFIRMED` → `IN_SERVICE` → `COMPLETED`, mais `CANCELLED` e `NO_SHOW`.
+- Overbooking impedido no banco (`EXCLUDE` por `staff_id`, cross-unidade).
+- Página `/{tenant}` e `/{tenant}/{location}`; fluxo ≤ 4 telas; **sem OTP**; token de cancelamento.
+- Confirmação/lembretes enfileirados ao criar/mover/cancelar (jobs E6).
+
+### E5 — Financeiro da barbearia
+
+- Pagamento ao `COMPLETED` (centavos; `CASH`, `PIX`, `DEBIT`, `CREDIT`, `OTHER`).
+- Comissão derivada de `%` do staff × recebido no período.
+- Sem caixa do dia, contas a pagar ou NFS-e no MVP.
+
+### E6 — WhatsApp e notificações
+
+- Confirmação + lembretes **24 h** e **2 h** antes.
+- **WAHA GOWS** default + **Resend** fallback ([ADR-0016](./adr/0016-waha-default-messaging.md)).
+- Checkbox de ciência antes do QR; kill switch.
+
+### E7 — Relatórios
+
+- Faturamento, atendimentos, ticket, no-show, top serviços, comissão — por unidade e consolidado (`OWNER`).
+- Export CSV; somente leitura (views).
 
 ### E8 — Billing SaaS
-- Trial 14 dias sem cartão.
-- Assinatura recorrente por cartão/Pix; provedor ainda não escolhido — comparativo em [13](13-provedores-pagamento.md), integração atrás da interface `PaymentProvider`.
-- Preço em função de profissionais ativos **e número de unidades**.
-- Estados da assinatura, com **prazo negociado manualmente** antes de qualquer desativação (ver [08](08-billing-planos.md)).
 
-### E9 — Back-office da plataforma
-- Listar tenants, status de assinatura, MRR, e impersonation auditada para suporte.
+- Trial 14 dias; **cobrança manual** ([ADR-0010](./adr/0010-billing-saas-manual-mvp.md)); sem checkout.
+- Limites por profissionais e unidades; `grace_until`; fila no back-office.
 
-## Fora do MVP (backlog explícito)
+### E9 — Plataforma e LGPD
 
-| Item | Por quê fica fora |
-|---|---|
-| App nativo iOS/Android | Web responsivo resolve; custo alto |
-| Pagamento antecipado/sinal pelo cliente | Confirmado fora do MVP; fase 2 (arma contra no-show) |
-| Estoque compartilhado / transferência entre unidades | Sem estoque no MVP |
-| Caixa consolidado com DRE por unidade | Relatório simples basta no MVP |
-| Controle de estoque / venda de produtos | Não é o problema #1 |
-| Programa de fidelidade / cupons | Retenção vem depois de aquisição |
-| Comanda com múltiplos itens e divisão | Financeiro básico basta no MVP |
-| Marketplace / busca de barbearias | Anti-objetivo |
-| Integração com Google Calendar | Fase 2 |
-| Relatórios avançados / BI | Fase 2 |
-| Domínio próprio por tenant (`agenda.suabarbearia.com.br`) | Fase 2 |
-| Whitelabel completo | Fase 3 |
+- RLS + testes de isolamento tenant **e** unidade no CI.
+- Back-office: tenants, MRR, impersonation (leitura), exportação, `audit_log`.
 
-## User stories com critérios de aceite
+## 3. Fora do MVP
 
-### US-01 — Publicar página de agendamento
-> Como **dono**, quero publicar minha página de agendamento para receber marcações sem WhatsApp.
+| Item | Fase | Motivo |
+| --- | --- | --- |
+| App nativo | 2+ | Web responsivo basta |
+| Sinal / pagamento antecipado | 2 | Arma anti-no-show; fora do corte |
+| Estoque, comanda rica, DRE | 2+ | Escopo salão, não barbearia enxuta |
+| Fidelidade / cupons | 2 | Depois de aquisição |
+| Marketplace | — | Anti-objetivo |
+| Google Calendar | 2 | Nice-to-have |
+| Domínio próprio por tenant | 2 | |
+| Inbox WhatsApp | 2 | Sessão WAHA já preparada |
+| Checkout Stripe/MP/Asaas | 2 | ADR-0010 |
 
-- **Dado** que criei a conta, **quando** completo o wizard, **então** `/{tenant}` responde 200 com os serviços da minha única unidade (sem seletor).
-- Slug duplicado é rejeitado com mensagem clara e sugestão alternativa.
-- Sem nenhum serviço ativo, a página exibe "agendamento indisponível" em vez de erro.
+## 4. User stories (aceite)
 
-### US-02 — Agendar como cliente final
-> Como **cliente**, quero marcar um horário sem baixar app nem conversar com ninguém.
+### US-01 — Publicar página
 
-- Só aparecem slots que respeitam horário da unidade, jornada do profissional naquela unidade, bloqueios, duração do serviço e compromissos do profissional em **outras unidades**.
-- Não é possível agendar no passado nem além de 60 dias.
-- Telefone é validado e normalizado para E.164.
-- Duas reservas simultâneas no mesmo slot: a segunda falha com `409 SLOT_TAKEN`.
-- Ao confirmar, o cliente vê o resumo e recebe a confirmação no canal ativo.
+- Wizard completo → `/{tenant}` 200 (1 unidade, sem seletor).
+- Slug duplicado rejeitado com sugestão.
+- Sem serviço ativo → "agendamento indisponível", não 500.
 
-### US-03 — Agenda do dia
-> Como **barbeiro**, quero ver meus atendimentos de hoje no celular.
+### US-02 — Agendar como cliente
 
-- Login leva direto à agenda do dia.
-- `STAFF` não enxerga agendamentos de outros profissionais.
-- Mudança de status reflete em ≤ 2s para outros usuários do tenant (polling de 30s é aceitável no MVP).
+- Slots respeitam unidade, jornada, bloqueios e compromissos do staff em **outras** unidades.
+- Passado e > 60 dias bloqueados; telefone E.164; `409 SLOT_TAKEN` em concorrência.
+- Confirmação no canal ativo após reserva.
+
+### US-03 — Agenda do dia (barbeiro)
+
+- Login → agenda de hoje; `STAFF` só vê os próprios.
+- Status reflete em ≤ 2 s (polling 30 s aceitável).
 
 ### US-04 — Bloquear horário
-> Como **dono**, quero bloquear almoço/folga para não receber marcação nesse período.
 
-- Bloqueio recorrente semanal suportado.
-- Criar bloqueio sobre agendamentos existentes exige confirmação e lista os afetados.
+- Recorrente semanal; conflitos listados antes de confirmar bloqueio.
 
 ### US-05 — Relatório do mês
-> Como **dono**, quero saber quanto faturei e quanto devo de comissão.
 
-- Filtro por período e por profissional.
-- Totais consideram apenas atendimentos `CONCLUIDO`.
-- Exportação CSV.
+- Filtro período/profissional/unidade; só `COMPLETED`; CSV.
 
 ### US-06 — Assinar
-> Como **dono**, quero pagar a mensalidade para continuar usando após o trial.
 
-- Checkout conclui e ativa a assinatura em ≤ 1 min (via webhook).
-- Falha de pagamento → estado `PAST_DUE` + e-mail com link de atualização de cartão.
-- Nenhuma ação de billing é confiada ao retorno do browser; a fonte da verdade é o webhook.
+- Trial 14 d sem cartão; ativação **manual** pós-trial.
+- `PAST_DUE` + contato; nada desliga antes de `grace_until`.
+- `SUSPENDED`: página off; painel só instruções + exportação.
 
-### US-07 — Operar uma rede
-> Como **dono de 3 unidades**, quero ver a agenda de cada loja separadamente e o faturamento da rede junto.
+### US-07 — Operar rede
 
-- Trocar de unidade no painel não recarrega a sessão nem exige novo login.
-- `MANAGER` da unidade Centro não vê nem edita a agenda da unidade Sul (404).
-- Relatório aceita `location_id` ou "todas"; os totais consolidados batem com a soma das unidades.
-- Barbeiro vinculado a duas unidades não pode ser agendado no mesmo horário nas duas.
-- Cliente cadastrado na unidade A aparece com histórico completo ao agendar na unidade B.
+- Troca de unidade sem novo login; `MANAGER` de X não vê Y (404).
+- Consolidado = soma das unidades; staff não double-booked cross-unidade.
 
-### US-08 — Isolamento entre tenants (requisito não-funcional testável)
-> Como **plataforma**, nenhum dado pode vazar entre barbearias.
+### US-08 — Isolamento
 
-- Suíte de testes automatizados: para cada endpoint, um usuário do tenant A recebe 404/403 ao acessar recurso do tenant B, **e** um usuário com escopo apenas da unidade X recebe 404 em recurso da unidade Y do mesmo tenant.
-- Teste que falha o build se alguma tabela de negócio não tiver `tenant_id` + política RLS.
+- Tenant A → 404 em recurso de B; escopo unidade X → 404 em Y.
+- CI falha se tabela operacional sem RLS.
 
-## Definition of Done do MVP
-- Todos os itens E1–E9 (incluindo E1b) entregues e cobertos por testes de integração.
-- Suíte de isolamento multi-tenant verde.
-- 3 barbearias piloto usando em produção por 2 semanas sem incidente de dados.
-- p95 da grade de horários < 500ms; p95 do restante das APIs < 300ms.
+## 5. Definition of Done
+
+- E1–E9 entregues com testes de integração ([12 — Qualidade](./12-qualidade-testes.md)).
+- Suíte de isolamento verde.
+- 3 pilotos, 2 semanas, zero incidente S1 de dados.
+- p95 grade de horários < 500 ms; demais APIs < 300 ms.
+
+## Referências
+
+- [03 — Personas e Jornadas](./03-personas-jornadas.md)
+- [requisitos/](./requisitos/)
+- [13 — Roadmap](./13-roadmap-estimativas.md) (S0–S8)

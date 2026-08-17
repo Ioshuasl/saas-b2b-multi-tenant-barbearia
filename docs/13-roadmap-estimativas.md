@@ -1,75 +1,130 @@
-# 10 — Roadmap de Entrega
+# 13 — Roadmap e Estimativas
 
-Estimativas em semanas para **1 dev full-stack em tempo integral**. Com 2 devs, aproximadamente 60% do tempo (as fases 2 e 3 paralelizam bem: agenda vs. página pública).
+## 1. Premissas das estimativas
 
-## Fase 0 — Fundação (2 semanas)
-- Monorepo (Express+Sequelize / Next.js), docker-compose (postgres, redis, mailhog, evolution-api), CI (eslint/tsc/test).
-- Migrations com SQL cru para RLS e `btree_gist`; helper `withTenant` + hook global que falha em query fora de transação com tenant.
-- Esqueleto de auth (signup/login/refresh), middleware de tenant **e de escopo de unidade**.
-- **Suíte de testes de isolamento (tenant e unidade) desde o início** — não é item de fim de projeto.
-- Seed com 2 tenants, um deles com 2 unidades.
-- Iniciar em paralelo, porque demoram: verificação do Meta Business Manager e abertura de conta no provedor de pagamento escolhido.
+- Time de referência: **2 desenvolvedores full-stack** (ou 1 dev + apoio de IA em ritmo equivalente), com o proprietário do produto disponível para decisões rápidas.
+- Sprint de 2 semanas; velocidade assumida de ~30–40 pontos por sprint depois da Sprint 0.
+- Estimativas em **pontos** (Fibonacci) e em **sprints** — não em datas de calendário.
+- Riscos externos (sessão WAHA/QR, revisão jurídica, barbearias-piloto) correm em paralelo.
+- Stack e provedores **já fechados** na Parte 4 (Hostinger, EasyPanel, WAHA, Resend, billing manual, envelope). A S0 não reabre essas decisões.
 
-✅ *Pronto quando:* um usuário do tenant A recebe 404 em recurso do tenant B, **e** um gerente da unidade X recebe 404 em recurso da unidade Y — provados por teste no CI.
+## 2. Fase 1 — MVP
 
-## Fase 1 — Cadastros, unidades e configuração (2 semanas)
-- CRUD de unidades, serviços (catálogo da rede + override por unidade), profissionais, horário de funcionamento, bloqueios.
-- Convite de profissional, RBAC e `user_locations`.
-- Seletor de unidade no painel (oculto com uma só) e configurações do tenant/slug.
+| Sprint | Objetivo | Épicos | Pontos | Entregável verificável |
+| --- | --- | --- | --- | --- |
+| **S0** | Fundação técnica + segurança | E9 (parcial) | ~30 | Monorepo, Docker Compose (Postgres, Redis, MinIO, Mailpit), Prisma + primeira migração com RLS, CI verde (gitleaks/audit/arch), Express `/health`, Next.js layout + login mockado; secrets/env Zod; esqueleto `audit_log`; port `KeyManagementPort` + `tenant_crypto_key`; seed com **2 tenants, um com 2 unidades** |
+| **S1** | Identidade, rede e cadastros | E1, E2 | ~40 | Signup cria tenant + unidade padrão + OWNER; login/refresh; convite; RBAC + `user_locations`; CRUD unidades/serviços/staff/horários/bloqueios; seletor oculto com 1 unidade |
+| **S2** | Clientes e motor de agenda | E3, E4 (núcleo) | ~45 | Cadastro/busca de clientes (E.164); disponibilidade em SQL; criar/editar/cancelar; `EXCLUDE` anti-overbooking **por staff** (todas as unidades); 50 req no mesmo slot = 1 sucesso |
+| **S3** | Agenda no painel | E4 (UI) | ~40 | Visão dia/semana; status; pagamento ao concluir; mobile-first do barbeiro; STAFF só a própria agenda |
+| **S4** | Página pública | E4 (público) | ~40 | `/{tenant}` seletor ou redirect; `/{tenant}/{unidade}` em ≤ 4 telas; token de cancelamento; LCP < 2,5 s |
+| **S5** | WhatsApp + e-mail | E6 | ~35 | WAHA GOWS atrás de `MessagingProvider`; checkbox de ciência + QR; confirmação e lembretes 24h/2h; e-mail Resend fallback; kill switch |
+| **S6** | Relatórios e caixa básico | E5, E7 | ~40 | Pagamento no `COMPLETED`; relatório por unidade e consolidado; comissão; CSV |
+| **S7** | Billing manual e back-office | E8, E9 | ~35 | Trial 14 dias; planos/limites; fila “tenants a cobrar”; `grace_until`; impersonation somente leitura; exportação LGPD |
+| **S8** | Endurecimento e piloto | E9 (restante) | ~30 | Auditoria consultável; testes de carga; envelope nos campos definidos; correções do piloto; termos/DPA |
 
-## Fase 2 — Motor de agendamento (3 semanas) — maior risco técnico
-- Cálculo de disponibilidade em SQL cru (timezone **por unidade**, jornadas, bloqueios, buffers).
-- Criação/edição/cancelamento com constraint de não sobreposição.
-- Testes pesados: DST, virada de dia, concorrência, serviços múltiplos, **profissional atuando em duas unidades**.
+**Total estimado do MVP: ~335 pontos ≈ 9 sprints ≈ 18 semanas de calendário** com o time de referência. Com 1 dev em tempo integral o mesmo conteúdo tende a ~4–5 meses (a multi-unidade no MVP é o acréscimo consciente vs. loja única).
 
-✅ *Pronto quando:* teste de concorrência com 50 requisições simultâneas no mesmo slot resulta em exatamente 1 sucesso.
+`location_id` entra no schema **desde a S0**. Cortar UI de rede é barato; cortar o modelo depois não.
 
-## Fase 3 — Agenda no painel (2,5 semanas)
-- Visão dia (colunas por profissional da unidade selecionada) e semana.
-- Criar/arrastar/remarcar, mudança de status, registro de pagamento.
-- Mobile-first para o barbeiro.
+### Marcos de validação
 
-## Fase 4 — Página pública (2,5 semanas)
-- `/{tenant}` com seletor de unidades (ou redirect) e `/{tenant}/{unidade}` com serviços, profissionais e grade de horários.
-- Fluxo de reserva em 4 telas, cancelamento por token.
-- Performance e SEO local.
+| Marco | Quando | Critério de saída |
+| --- | --- | --- |
+| **M1 — Esqueleto seguro** | Fim da S0 | Tenant A recebe 404 em recurso do tenant B **e** gerente X recebe 404 na unidade Y — no CI |
+| **M2 — Agenda usável internamente** | Fim da S3 | Dono opera o dia pelo painel sem caderno |
+| **M3 — Página pública no ar** | Fim da S4 | Cliente real marca horário pelo link |
+| **M4 — Lembrete ponta a ponta** | Fim da S5 | Confirmação/lembrete WhatsApp ou e-mail com número de teste |
+| **M5 — Piloto** | Fim da S8 | 3 barbearias (idealmente 1 rede) usando 2 semanas sem incidente de dados |
 
-## Fase 5 — Notificações (1,5 semana)
-- Worker + fila, templates com variáveis nomeadas, lembretes (24h/2h), cancelamento de pendentes.
-- E-mail como fallback obrigatório + adapter **Evolution API** atrás da interface `WhatsAppProvider`, com monitor de sessão.
-- Migração para API oficial fica fora do MVP, mas a interface e os templates já nascem compatíveis ([14](14-whatsapp-notificacoes.md)).
+## 3. Fase 2 — MVP+ (pós-piloto)
 
-## Fase 6 — Clientes e relatórios (2 semanas)
-- Lista de clientes com histórico (base única da rede, com a unidade de cada atendimento).
-- Relatório de faturamento, no-show, top serviços, comissões, export CSV — por unidade e consolidado.
+Ordem por valor comercial (sem copiar backlog clínico do odontológico):
 
-## Fase 7 — Billing (2 semanas)
-- Integração com o provedor escolhido atrás de `PaymentProvider`, checkout, webhooks idempotentes, estados da assinatura, gates por plano (profissionais **e** unidades), reconciliação diária.
+| Prioridade | Item | Pontos | Por quê agora |
+| --- | --- | --- | --- |
+| 1 | Gateway de cobrança SaaS (Stripe / MP / Asaas) | 25 | Converte trial sem operação humana |
+| 2 | Inbox WhatsApp compartilhada | 30 | Pedido frequente; infra de sessão já existe |
+| 3 | Sinal / pagamento antecipado do cliente | 25 | Arma contra no-show |
+| 4 | Domínio próprio por tenant | 15 | Percepção de marca |
+| 5 | Google Calendar | 15 | Barbeiro que já vive no Calendar |
+| 6 | Caixa do dia (abertura/fechamento) | 20 | Lojas maiores |
+| 7 | MFA TOTP para OWNER | 15 | Endurecimento |
+| 8 | Relatórios / BI avançados | 25 | Retenção do dono |
+| 9 | Fidelidade / cupons | 20 | Retenção do cliente final |
+| 10 | Importador de clientes/agenda | 25 | Migração de caderno/planilha |
 
-## Fase 8 — Back-office e lançamento (1,5 semana)
-- Listagem de tenants, MRR, impersonation auditada.
-- **Fila de cobrança com negociação de prazo** (`grace_until`, motivo, histórico de contato) — sem ela a política de inadimplência de [08](08-billing-planos.md) não funciona.
-- Onboarding wizard polido, e-mails transacionais, termos/privacidade/DPA.
-- Observabilidade, alertas, runbooks, teste de restore.
+## 4. Fase 3 — Escala
 
-**Total: ~19 semanas (≈4,5 meses) com 1 dev; ~12 semanas com 2 devs.**
+App nativo, estoque, DRE por unidade, marketplace (anti-objetivo — não fazer), whitelabel, NFS-e, maquininha, SSO, API pública.
 
-O acréscimo de ~4,5 semanas sobre a estimativa anterior é o custo de multi-unidade no MVP. Vale pagar agora: retrofitar `location_id` em agenda, relatórios e página pública depois custaria bem mais.
+## 5. Dependências externas (desde a S0)
 
-## Marcos
+| Dependência | Prazo típico | Ação antecipada |
+| --- | --- | --- |
+| Instância WAHA (GOWS) na VPS | horas a 1 dia | Já em `waha.ioshuavps.com.br`; conferir engine GOWS |
+| Ciência jurídica WhatsApp não oficial + DPA | 2–4 semanas | Contratar na S3 para estar pronto na S8 |
+| 3 barbearias-piloto (quantas têm 2+ unidades?) | recrutamento | Definir na S2; uma rede valida E1b de verdade |
+| CNPJ / meios de recebimento da plataforma | semanas | Necessário antes de automatizar billing (fase 2) |
 
-| Marco | Quando | Critério |
-|---|---|---|
-| M1 — Esqueleto seguro | fim da Fase 0 | isolamento provado por teste |
-| M2 — Agenda usável internamente | fim da Fase 3 | dono consegue operar o dia inteiro pelo painel |
-| M3 — Piloto fechado | fim da Fase 5 | 3 barbearias reais usando de graça |
-| M4 — MVP comercial | fim da Fase 8 | primeira barbearia pagante |
-| M5 — Validação | +90 dias de M4 | 10 tenants pagantes, churn < 10%/mês |
+## 6. Riscos e planos de contingência
 
-## Estratégia de piloto (crítica)
-Recrutar 3 barbearias **antes** da Fase 3 e mostrar a agenda a cada duas semanas. Rodar o piloto de graça em troca de feedback e de permissão para observar o uso presencialmente por meio dia. A maior parte dos erros de escopo aparece assistindo o barbeiro usar, não em reunião.
+| # | Risco | Prob. | Impacto | Mitigação |
+| --- | --- | --- | --- | --- |
+| R1 | Sessão WAHA cai / número banido | Alta | Alto | Número dedicado + checkbox; fallback e-mail; não bloqueia o resto do MVP |
+| R2 | Overbooking | Média | Alto | `EXCLUDE`; teste de 50 req; `SLOT_TAKEN` claro |
+| R3 | Fuso / DST | Alta | Alto | `timestamptz`; timezone **por unidade**; testes DST |
+| R4 | Vazamento entre tenants | Baixa | Crítico | RLS + CI |
+| R5 | Vazamento entre unidades | Média | Alto | Teste de autorização por endpoint |
+| R6 | Multi-unidade complica loja única | Média | Alto | UI oculta; medir onboarding ≤ 10 min separado |
+| R7 | Inadimplência negociada virar “nunca cobrar” | Média | Alto | Fila de cobrança + `grace_until` obrigatório |
+| R8 | Barbearias não largam o WhatsApp paralelo | Média | Alto | QR no Instagram; métrica `first_public_booking` |
+| R9 | Time pequeno / bus factor 1 | Alta | Médio | Documentação viva, ADRs, fronteiras no CI |
+| R10 | Afirmar “WhatsApp oficial” no marketing | Média | Alto | Copy alinhada ao ADR-0016 |
 
-## Ordem de prioridade se o prazo apertar
-Cortar, nesta ordem: relatório consolidado da rede (deixar só por unidade) → preço sobrescrito por unidade → relatórios avançados → back-office (substituir por queries manuais) → WhatsApp (fica só e-mail) → comissões. **Nunca cortar:** `location_id` no modelo de dados, isolamento multi-tenant, prevenção de overbooking, página pública.
+## 7. Decisões técnicas — status
 
-Observação: mesmo cortando funcionalidades de rede, **as colunas `location_id` entram no schema desde a Fase 0**. Cortar UI é barato; cortar modelo de dados é uma migração dolorosa depois.
+**Fechadas (não reabrir na S0)**
+
+1. Hospedagem → VPS Hostinger + S3 `sa-east-1` (ADR-0008)
+2. Deploy → EasyPanel; domínio app + api (ADR-0014)
+3. E-mail → Resend; Mailpit local (ADR-0009)
+4. Billing SaaS → **manual no MVP**; Stripe / MP / Asaas depois (ADR-0010)
+5. UUID v7 na aplicação (ADR-0011)
+6. Observabilidade → Sentry + Pino (ADR-0012)
+7. KEK → local na VPS; Vault depois (ADR-0013)
+8. Envelope AES-256-GCM; campos `customer.notes` e `appointment.notes` (ADR-0007)
+9. WhatsApp → **WAHA GOWS** default (ADR-0016)
+10. Filas → BullMQ + outbox (ADR-0006)
+11. Prisma + RLS (ADR-0004, ADR-0002)
+
+Cada decisão nova gera ADR em `docs/adr/`.
+
+## 8. Como medir se o MVP deu certo
+
+Metas de saída do piloto (3 meses após M5), detalhe em [14](./14-metricas-kpis.md):
+
+| Métrica | Meta |
+| --- | --- |
+| Barbearias pagantes ativas | rumo a 10 em 90 dias (meta de produto) |
+| Retenção mensal de tenants | ≥ 95% |
+| Redução de no-show | ≥ 20% relativo ao mês anterior à adoção |
+| Onboarding publicado em < 10 min (loja única) | p90 < 20 min |
+| Primeiro agendamento pela página pública | ≥ 50% dos ativados |
+| Uso da agenda como fonte única | 100% das piloto |
+| p95 da grade de horários | < 500 ms |
+| Incidentes S1 (vazamento tenant/unidade) | 0 |
+| NPS do piloto | ≥ 50 |
+
+## 9. Se o prazo apertar — ordem de corte
+
+Cortar, nesta ordem: relatório consolidado da rede → preço sobrescrito por unidade → back-office (queries manuais) → WhatsApp (fica só e-mail) → comissões.
+
+**Nunca cortar:** `location_id` no schema, isolamento multi-tenant, prevenção de overbooking, página pública, suíte de isolamento no CI.
+
+## Referências
+
+- [04 — Escopo do MVP](./04-escopo-mvp.md)
+- [09 — Frontend](./09-frontend.md)
+- [12 — Qualidade e testes](./12-qualidade-testes.md)
+- [14 — Métricas](./14-metricas-kpis.md)
+- [17 — Segurança baseline](./17-seguranca-baseline.md) §12 (fundação na S0)

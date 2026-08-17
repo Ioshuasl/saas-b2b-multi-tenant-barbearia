@@ -10,7 +10,7 @@ Catálogo de **requisitos funcionais (RF)** e **não funcionais (RNF)** do MVP, 
 | Prioridade, rastreabilidade e critérios de aceite | Decisões de stack (ver ADRs e `05-arquitetura.md`) |
 | Itens explicitamente fora do MVP (marcados Fase 2/3) | Backlog de implementação sprint a sprint |
 
-**Fonte normativa:** [04 — Escopo do MVP](../04-escopo-mvp.md), [03 — Personas e Jornadas](../03-personas-jornadas.md), módulos em `docs/modulos/` (Parte 2), [10 — Segurança/LGPD](../10-seguranca-lgpd-compliance.md), [11 — Infra](../11-infra-devops.md), [06 — Multi-Tenancy](../06-multi-tenancy.md), [14 — Métricas](../14-metricas-kpis.md). Material de pesquisa: [pesquisa/](../pesquisa/).
+**Fonte normativa:** [04 — Escopo do MVP](../04-escopo-mvp.md), [03 — Personas e Jornadas](../03-personas-jornadas.md), [modulos/](../modulos/), [07 — Modelo de dados](../07-modelo-de-dados.md), [08 — API v1](../08-api-v1.md), [10 — Segurança/LGPD](../10-seguranca-lgpd-compliance.md), [11 — Infra](../11-infra-devops.md), [06 — Multi-Tenancy](../06-multi-tenancy.md), [14 — Métricas](../14-metricas-kpis.md). E6 e E8 alinhados a [ADR-0016](../adr/0016-waha-default-messaging.md) e [ADR-0010](../adr/0010-billing-saas-manual-mvp.md). Material de pesquisa: [pesquisa/](../pesquisa/). Benchmark: [02](../02-benchmark-mercado.md).
 
 ## Convenções
 
@@ -46,11 +46,11 @@ Prioridade segue MoSCoW alinhada ao [escopo do MVP](../04-escopo-mvp.md). Itens 
 | [Requisitos não funcionais](./nao-funcionais/requisitos-nao-funcionais.md) | Desempenho, disponibilidade, escala, segurança, privacidade, integridade, usabilidade, acessibilidade, i18n, compatibilidade, observabilidade, backup/DR, manutenibilidade |
 | [Checklist OWASP / API Security](./nao-funcionais/RNF-seguranca-owasp.md) | OWASP Top 10, API Top 10, envelope crypto, anomalias |
 
-Baseline operacional: [10 — LGPD](../10-seguranca-lgpd-compliance.md) · [17 — Segurança Enterprise](../17-seguranca-baseline.md) (Parte 4) · [ADR-0002](../adr/0002-multi-tenancy-rls.md) · [ADR-0007](../adr/0007-criptografia-envelope-tenant.md) (Parte 4).
+Baseline operacional: [10 — LGPD](../10-seguranca-lgpd-compliance.md) · [17 — Segurança Enterprise](../17-seguranca-baseline.md) · [ADR-0002](../adr/0002-multi-tenancy-rls.md) · [ADR-0007](../adr/0007-criptografia-envelope-tenant.md).
 
 ## Como usar
 
-1. Antes de implementar um épico, leia o RF correspondente + o módulo em `docs/modulos/` (quando existir).
+1. Antes de implementar um épico, leia o RF correspondente + o módulo em `docs/modulos/`.
 2. Critérios de aceite aqui são o contrato de produto; detalhes de endpoint ficam em [08 — API v1](../08-api-v1.md).
 3. RNFs aplicam-se a **todos** os RF, salvo indicação contrária.
 4. Mudança de escopo: atualizar o RF/RNF **e** o [04 — Escopo](../04-escopo-mvp.md) (ou criar ADR se for decisão técnica).

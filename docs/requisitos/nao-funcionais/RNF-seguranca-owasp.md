@@ -2,7 +2,7 @@
 
 Status padrão: **Planejado**. Atualizar para `Em implementação` / `Atendido` durante o desenvolvimento.
 
-Fontes: [10 — LGPD](../../10-seguranca-lgpd-compliance.md), [06 — Multi-Tenancy](../../06-multi-tenancy.md), [17 — Baseline](../../17-seguranca-baseline.md) (Parte 4), [ADR-0002](../../adr/0002-multi-tenancy-rls.md), [ADR-0007](../../adr/0007-criptografia-envelope-tenant.md) (Parte 4).
+Fontes: [10 — LGPD](../../10-seguranca-lgpd-compliance.md), [06 — Multi-Tenancy](../../06-multi-tenancy.md), [17 — Baseline](../../17-seguranca-baseline.md), [ADR-0002](../../adr/0002-multi-tenancy-rls.md), [ADR-0007](../../adr/0007-criptografia-envelope-tenant.md).
 
 ---
 
@@ -64,7 +64,7 @@ Fontes: [10 — LGPD](../../10-seguranca-lgpd-compliance.md), [06 — Multi-Tena
 | RNF-ANOM-03 | Rajada de 404 cross-tenant endurece rate limit e alerta | Should | Planejado |
 | RNF-ANOM-04 | Impersonation / break-glass sempre auditado (e notificação quando política exigir) | Must | Planejado |
 | RNF-ANOM-05 | Mudança de papel para `OWNER` gera alerta | Should | Planejado |
-| RNF-ANOM-06 | Queda de sessão Evolution/WAHA gera alerta operacional | Must | Planejado |
+| RNF-ANOM-06 | Queda de sessão WAHA gera alerta operacional | Must | Planejado |
 
 ---
 
