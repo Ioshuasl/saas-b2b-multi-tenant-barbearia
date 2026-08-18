@@ -125,13 +125,18 @@ export function WizardForm() {
                 Unidade: <span className="font-mono">{publicInfo.locationPath}</span>
               </p>
               {qr ? <img src={qr} alt="QR da página da unidade" className="h-48 w-48 rounded-md bg-white p-2" /> : null}
-              <p className="text-sm opacity-80">
-                A página de agendamento entra na Sprint 4. O link pode ainda não abrir.
-              </p>
+              <a
+                href={publicInfo.locationUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex min-h-11 items-center justify-center rounded-md bg-[var(--accent)] px-3 py-2 font-medium text-black"
+              >
+                Abrir página de agendamento
+              </a>
             </>
           ) : (
             <p className="text-sm opacity-80">
-              Publique para gerar o link e o QR. A página pública chega na Sprint 4.
+              Publique para gerar o link e o QR da página de agendamento.
             </p>
           )}
           <Button type="button" onClick={() => void completeStep('publish')} disabled={update.isPending}>

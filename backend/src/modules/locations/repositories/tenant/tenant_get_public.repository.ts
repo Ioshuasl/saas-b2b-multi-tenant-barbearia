@@ -4,6 +4,7 @@ import { getPrismaClient, getTenantPrisma } from '../../../../shared/database/te
 export type TenantPublic = {
   id: string;
   name: string;
+  logoUrl: string | null;
   locations: Array<{ id: string; slug: string; name: string }>;
 };
 
@@ -20,7 +21,7 @@ export class GetPublicRepository {
     const tenant = rows[0];
     if (!tenant) return null;
 
-    const locations = await this.db.runInTenantContext(
+    const details = await this.db.runInTenantContext(
       {
         tenantId: tenant.id,
         userId: '00000000-0000-0000-0000-000000000000',
@@ -29,14 +30,25 @@ export class GetPublicRepository {
         locationScope: 'ALL',
         locationIds: [],
       },
-      async (tx) =>
-        tx.location.findMany({
+      async (tx) => {
+        const record = await tx.tenant.findUnique({
+          where: { id: tenant.id },
+          select: { logoUrl: true },
+        });
+        const locations = await tx.location.findMany({
           where: { active: true, acceptsOnlineBooking: true },
           select: { id: true, slug: true, name: true },
           orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
-        }),
+        });
+        return { logoUrl: record?.logoUrl ?? null, locations };
+      },
     );
 
-    return { id: tenant.id, name: tenant.name, locations };
+    return {
+      id: tenant.id,
+      name: tenant.name,
+      logoUrl: details.logoUrl,
+      locations: details.locations,
+    };
   }
 }

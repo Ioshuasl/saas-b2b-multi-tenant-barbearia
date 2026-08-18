@@ -40,5 +40,26 @@ export const SEED = {
     email: 'gerente@cortefino.local',
     name: 'Fernanda (MANAGER Centro)',
   },
+  userBStaff: {
+    id: '018f0000-0000-7000-8000-0000000000b5',
+    email: 'barbeiro@cortefino.local',
+    name: 'Carlos (STAFF Centro)',
+  },
+  staffA: {
+    id: '018f0000-0000-7000-8000-0000000000a3',
+    name: 'Barbeiro Navalha',
+  },
+  staffBCentro: {
+    id: '018f0000-0000-7000-8000-0000000000b6',
+    name: 'Carlos',
+  },
+  staffBCentroOther: {
+    id: '018f0000-0000-7000-8000-0000000000b8',
+    name: 'Rafael',
+  },
+  staffBJardim: {
+    id: '018f0000-0000-7000-8000-0000000000b7',
+    name: 'Diego',
+  },
   password: 'Devpass10!',
 } as const;

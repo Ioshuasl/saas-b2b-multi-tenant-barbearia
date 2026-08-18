@@ -1,0 +1,22 @@
+import { AppError } from '../../../shared/domain/errors.js';
+import type { z } from 'zod';
+
+export function parseBody<T>(schema: z.ZodType<T, z.ZodTypeDef, unknown>, body: unknown): T {
+  const parsed = schema.safeParse(body);
+  if (!parsed.success) {
+    throw new AppError(
+      'VALIDATION_ERROR',
+      'Dados inválidos.',
+      400,
+      parsed.error.issues.map((issue) => ({
+        field: issue.path.join('.') || undefined,
+        issue: issue.message,
+      })),
+    );
+  }
+  return parsed.data;
+}
+
+export function parseQuery<T>(schema: z.ZodType<T, z.ZodTypeDef, unknown>, query: unknown): T {
+  return parseBody(schema, query);
+}

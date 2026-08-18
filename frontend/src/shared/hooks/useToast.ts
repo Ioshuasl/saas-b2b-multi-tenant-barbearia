@@ -1,0 +1,12 @@
+'use client';
+
+import { useCallback, useState } from 'react';
+
+export function useToast() {
+  const [message, setMessage] = useState<string | null>(null);
+
+  const show = useCallback((text: string) => setMessage(text), []);
+  const clear = useCallback(() => setMessage(null), []);
+
+  return { message, show, clear };
+}

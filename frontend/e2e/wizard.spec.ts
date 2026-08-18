@@ -16,6 +16,9 @@ test.describe('Signup, wizard e convite', () => {
     await page.getByLabel('Senha').fill(`Aceite-P@ss-${suffix}`);
     await page.getByRole('button', { name: 'Criar e entrar' }).click();
 
+    await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByRole('heading', { name: 'Agenda' })).toBeVisible();
+    await page.getByRole('link', { name: 'Configurar loja' }).click();
     await expect(page).toHaveURL(/\/inicio/, { timeout: 20_000 });
     await expect(page.getByRole('heading', { name: 'Configurar loja' })).toBeVisible();
     await expect(page.getByRole('button', { name: /1\. Horários/ })).toBeVisible();

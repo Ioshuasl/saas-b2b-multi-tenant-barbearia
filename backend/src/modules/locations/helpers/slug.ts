@@ -5,6 +5,15 @@ export const RESERVED_SLUGS = [
   'login',
   'signup',
   'health',
+  'agenda',
+  'clientes',
+  'inicio',
+  'configuracoes',
+  'forgot-password',
+  'reset-password',
+  'verify-email',
+  'accept-invite',
+  'agendamento',
 ] as const;
 
 export function isReservedSlug(slug: string): boolean {

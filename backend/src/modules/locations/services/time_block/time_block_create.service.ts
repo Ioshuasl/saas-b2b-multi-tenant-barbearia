@@ -1,5 +1,6 @@
 import type { RequestContext } from '../../../../shared/domain/request_context.js';
 import { NotFoundError } from '../../../../shared/domain/errors.js';
+import { findConflictsForTimeBlock } from '../../../scheduling/scheduling_public.js';
 import { inLocationScope } from '../../helpers/location_scope.js';
 import { assertTimeBlockRange } from '../../models/time_block.model.js';
 import type { TimeBlockCreateSchema } from '../../schemas/time_block.schema.js';
@@ -31,6 +32,14 @@ export class CreateService {
       if (!staff) throw new NotFoundError();
     }
     assertTimeBlockRange(new Date(timeBlockSchema.startsAt), new Date(timeBlockSchema.endsAt));
-    return this.createRepository.execute(ctx, timeBlockSchema);
+    const created = await this.createRepository.execute(ctx, timeBlockSchema);
+    const conflicts = await findConflictsForTimeBlock({
+      tenantId: ctx.tenantId,
+      locationId: created.locationId,
+      staffId: created.staffId,
+      startsAt: new Date(created.startsAt),
+      endsAt: new Date(created.endsAt),
+    });
+    return { ...created, conflicts };
   }
 }

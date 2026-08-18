@@ -4,6 +4,279 @@ Append-only. Entradas mais recentes no topo.
 
 ---
 
+## 2026-08-18 — S4 Bloco 4 (aceite: smoke, vitest API, e2e Playwright)
+
+### Feito
+
+- Smoke `test:public-booking`: tenant navalha/corte-fino, staff[], token inválido, remarcar, SLOT_TAKEN, indisponível
+- Vitest `public_booking.api.test.ts`: contratos GET/POST/PATCH/DELETE públicos (consent, honeypot, mascaramento)
+- Playwright `s4-acceptance.spec.ts`: redirect, seletor, wizard 4 telas, painel, SLOT_TAKEN toast, token, indisponível, axe, RSC
+- CI: integration + job `e2e-s4`; scripts `pnpm test:public-booking` e `pnpm test:e2e:s4`
+
+### Validação
+
+- smoke + vitest API (com DB seed); e2e S4 com stack local
+
+### Próximo
+
+- Sprint 5 — mensagens WhatsApp/e-mail
+
+---
+
+## 2026-08-18 — S4 Bloco 3 (dados, confirmação, token, honeypot)
+
+### Feito
+
+- Tela 4: nome, telefone E.164, e-mail opcional, LGPD obrigatório, marketing separado, honeypot `website`
+- POST público → confirmação (serviço, profissional, horário no fuso da unidade, total); token no `sessionStorage` + link de gerenciar
+- `SLOT_TAKEN` volta à grade; `MAX_FUTURE_BOOKINGS` toast/inline; captcha stub só após `CAPTCHA_REQUIRED`
+- `/{tenant}/{unidade}/agendamento/[id]?token=`: ver (telefone mascarado), remarcar, cancelar; token inválido → 404; prazo → `TOO_LATE_TO_CANCEL`
+- Wizard admin: copy Sprint 4 removida; CTA abre a página real em nova aba
+- `generateMetadata` com nome da unidade nas rotas públicas (incluindo o token)
+
+### Validação
+
+- typecheck/lint frontend
+
+### Próximo
+
+- S4 Bloco 4 — e2e Playwright, axe, LCP, job CI `e2e-s4`
+
+---
+
+## 2026-08-18 — S4 Bloco 2 (seletor + wizard ≤ 4 telas)
+
+### Feito
+
+- `/{tenantSlug}`: 1 unidade → redirect; N → seletor (nome, endereço, distância via geolocalização)
+- `/{tenantSlug}/{locationSlug}`: wizard serviço → profissional (ou qualquer um) → horários
+- RSC com nome/logo no HTML; slug inválido → `not-found`; sem serviço → “Agendamento indisponível”
+- Slots só da API, timezone da unidade; empty state se a grade vier vazia
+
+### Validação
+
+- typecheck/lint frontend
+
+### Próximo
+
+- S4 Bloco 3 — dados, confirmação, token, honeypot
+
+---
+
+## 2026-08-18 — S4 Bloco 1 (contratos + gaps públicos)
+
+### Feito
+
+- `@repo/contracts`: `PublicTenant`, `PublicLocation`/`Detail` (`staff[]`), `PublicBook`/`Reschedule`/`Cancel`, appointment criado/mascarado, erros estáveis
+- GET público da unidade devolve `staff[]` (ativo + booking online na unidade); GET tenant devolve `logoUrl`
+- Slugs reservados alinhados às rotas Next (`agenda`, `clientes`, `inicio`, …)
+- `apiClient.requestPublic`: sem JWT, refresh, `X-Location-Id` ou cookie; `Idempotency-Key` no POST
+- Package `public`: Data → Service → Hook (`PublicTenant`, `PublicLocation`, `PublicAvailability`, `PublicAppointment`)
+- Mapa pt-BR: `MAX_FUTURE_BOOKINGS`, `CAPTCHA_REQUIRED`, `INVALID_CANCEL_TOKEN`
+
+### Validação
+
+- typecheck/lint contracts + backend + frontend; vitest slugs
+
+### Próximo
+
+- S4 Bloco 2 — seletor `/{tenant}` + wizard ≤ 4 telas
+
+---
+
+## 2026-08-18 — S4 planejada (checklist)
+
+### Feito
+
+- Checklist [`sprints/S4-pagina-publica.md`](./sprints/S4-pagina-publica.md)
+- Escopo: UI Must E4 público (`/{tenant}`, `/{tenant}/{unidade}`, token); 4 blocos (1 contratos/gaps + 3 frontend); backend só DTO `staff[]`/`logoUrl` + slugs reservados
+- Cortes: sem WhatsApp (S5); captcha visual só após `CAPTCHA_REQUIRED` (stub S2); geolocalização browser sem Maps; bundle sem painel; wizard S1 deixa de ser placeholder
+- Marco **M3** (página pública no ar) como DoD
+- S3 marcada concluída; roadmap §2 linka checklist S4
+
+### Validação
+
+- Fontes: RF-E4-11..18, J2, docs/09 §4.2, docs/08 §2.4/3.1, herança S2 (API pública) + S3 (erros/timezone)
+
+### Próximo
+
+- S4 Bloco 1 — contratos + gaps backend + cliente HTTP público
+
+---
+
+## 2026-08-18 — S3 Bloco 4 (aceite: nav, polish, e2e)
+
+### Feito
+
+- `/` é a agenda do dia para todos os papéis; OWNER com onboarding incompleto vê atalho **Configurar loja** (card + nav), sem redirect para `/inicio`
+- `GET /auth/me` devolve `staffId` via `locations_public`; seed painel: STAFF `barbeiro@cortefino.local` (Carlos/Centro), Rafael (Centro), Diego (Jardim)
+- Playwright `s3-acceptance.spec.ts`: create+status no painel, isolamento STAFF/MANAGER, busca/ficha, axe-core (zero crítica) em `/`, `/agenda`, `/clientes`
+- Job CI `e2e-s3` (API + web + seed); wizard e2e entra na agenda e abre o atalho
+
+### Validação
+
+- typecheck/lint frontend + backend; e2e S3 no pipeline
+
+### Próximo
+
+- S4 — página pública `/{tenant}`
+
+---
+
+## 2026-08-18 — S3 Bloco 3 (UI agenda dia/semana)
+
+### Feito
+
+- `AppointmentIndex` + `AppointmentDayView` / `AppointmentWeekView` em `/` e `/agenda`
+- Grade por profissional; STAFF vê só coluna própria; filtros data/status/profissional
+- `AppointmentFormDialog` (create/update) com picker de cliente, serviços, availability
+- Sidebar: detalhes, transições de status, cancelar, histórico; pagamento omitido (S6)
+- Drag-and-drop remarcação com mutação otimista + rollback/toast em `SLOT_TAKEN`
+- Polling 30 s + refetch on focus; timezone via `date-fns-tz` da unidade ativa
+- Atalhos `n`, `←/→`, `t`, `Esc`
+
+### Validação
+
+- `pnpm --filter @repo/frontend typecheck` + lint verdes
+
+### Próximo
+
+- S3 Bloco 4 — nav polish, e2e, axe
+
+---
+
+## 2026-08-18 — S3 Bloco 2 (UI clientes)
+
+### Feito
+
+- `CustomerIndex`: busca nome/telefone, cursor (“Carregar mais”), empty/erro/skeleton
+- `CustomerFormDialog` create/update: E.164 no Zod, `check-duplicate` no telefone, notes só com `customers.write`
+- Ficha `/clientes/[id]`: histórico (unidade, profissional, serviços, valor) + total gasto da API
+- `CustomerPicker` async para o form de agendamento (Bloco 3); inativação com copy LGPD (não “apagar”)
+
+### Validação
+
+- `pnpm --filter @repo/frontend typecheck` + lint verdes
+
+### Próximo
+
+- S3 Bloco 3 — agenda dia/semana no painel
+
+---
+
+## 2026-08-18 — S3 Bloco 1 (contratos + esqueleto operacional)
+
+### Feito
+
+- `@repo/contracts`: tipos + Zod + enums `Customer*`, `Appointment*`, `Availability*` (espelho docs/08 / API S2)
+- `packages/operacional`: Data → Service → Hook para customers, appointments (CRUD + status + histórico) e availability
+- `Idempotency-Key` UUID v7 no POST appointment; mapa `error.code` → pt-BR; `api-client` devolve `meta` e aceita 204
+- Nav: Agenda (`agenda.read`) e Clientes (`customers.read`); seletor de unidade invalida `appointments` / `availability`
+
+### Validação
+
+- `pnpm --filter @repo/contracts build` + typecheck/lint frontend
+
+### Próximo
+
+- S3 Bloco 2 — UI clientes (index, ficha, picker, forms)
+
+---
+
+## 2026-08-18 — S3 planejada (checklist)
+
+### Feito
+
+- Checklist [`sprints/S3-agenda-painel.md`](./sprints/S3-agenda-painel.md)
+- Escopo: UI Must E4 (painel) + E3 (lista/ficha); 4 blocos frontend + contratos; **sem backend novo**
+- Cortes: pagamento → S6; página pública → S4; WhatsApp → S5; polling ≤ 30 s; drag-and-drop incluído
+- Marco **M2** (agenda usável internamente) como DoD
+- S2 marcada concluída; roadmap §2 linka checklist S3
+
+### Validação
+
+- Fontes: RF E3/E4 UI, docs/09 §4.1/4.4, docs/16 operacional, herança S2 (API customers + scheduling)
+
+### Próximo
+
+- S3 Bloco 1 — contratos + esqueleto `packages/operacional`
+
+---
+
+## 2026-08-18 — S2 concluída (aceite)
+
+### Feito
+
+- Blocos 1–4: customers, scheduling DDL, CRUD painel, API pública, smokes concorrência 50×
+- CI: `test:customers` + `test:scheduling`; `test:rls` cobre tabelas novas
+- Playwright `s2-acceptance.spec.ts` (API)
+
+### Validação
+
+- Smokes S2 verdes localmente
+
+### Próximo
+
+- Sprint 3 — agenda no painel (UI)
+
+---
+
+## 2026-08-18 — S2 Bloco 2 código (scheduling DDL + domínio)
+
+### Feito
+
+- Migração `scheduling_core`: `appointment`, `appointment_service`, `appointment_history`, coluna gerada `period`, `EXCLUDE` gist cross-unidade, RLS + grants
+- Módulo `backend/src/modules/scheduling/`: máquina de estados, erros de domínio, `SlotCalculateService`, `PersistService`, histórico append-only
+- Snapshots via `locations_public.getServiceSnapshot`; `ends_at`/`total_price_cents` calculados no servidor
+- Check `pnpm test:scheduling-domain` (state machine + EXCLUDE + snapshots)
+
+### Validação
+
+- `pnpm test:scheduling-domain` · `pnpm test:rls` · `pnpm test:customers` · lint · arch:check verdes localmente
+
+### Próximo
+
+- S2 Bloco 3 — disponibilidade + CRUD painel
+
+---
+
+## 2026-08-18 — S2 Bloco 1 código (customers E3 Must)
+
+### Feito
+
+- Migração `customers_core` + `customers_grants`: tabela `customer`, `pg_trgm`, RLS, grants `app_user`
+- Módulo `backend/src/modules/customers/`: CRUD, E.164, envelope em `notes`, `customers_public.getOrCreateByPhone`
+- Endpoints docs/08 §2.3; histórico de appointments stub (lista vazia até Bloco 2)
+- Audit `CUSTOMER_*`; smoke `pnpm test:customers`; CI atualizado
+
+### Validação
+
+- `pnpm test:customers` · `pnpm test:rls` · `pnpm test:identity` · `pnpm test:locations` · lint · arch:check verdes localmente
+
+### Próximo
+
+- S2 Bloco 2 — scheduling DDL + domínio
+
+---
+
+## 2026-08-18 — S2 planejada (checklist)
+
+### Feito
+
+- Checklist [`sprints/S2-clientes-agenda-motor.md`](./sprints/S2-clientes-agenda-motor.md)
+- Escopo: Must E3 + núcleo E4 (backend); 4 blocos backend; **sem frontend** (UI → S3/S4)
+- Cortes: mesma engine disponibilidade painel/público; `EXCLUDE` cross-unidade; outbox sem dispatcher; pagamento → S6; envelope em `notes`; `conflicts[]` real em time blocks
+
+### Validação
+
+- Fontes: RF E3/E4, módulos 03–04, docs/07 §3–4, docs/08 §2.3–2.4, herança S1 (`locations_public`, RBAC)
+
+### Próximo
+
+- S2 Bloco 1 — backend customers (DDL + CRUD + `customers_public`)
+
+---
+
 ## 2026-08-18 — S1 aceite local (API + Playwright)
 
 ### Feito

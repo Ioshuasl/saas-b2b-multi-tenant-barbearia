@@ -3,6 +3,7 @@ import type {
   InputHTMLAttributes,
   ReactNode,
   SelectHTMLAttributes,
+  TextareaHTMLAttributes,
 } from 'react';
 
 export function Button({
@@ -33,6 +34,18 @@ export function Input({ className = '', ...props }: InputHTMLAttributes<HTMLInpu
   return (
     <input
       className={`rounded-md border border-white/15 bg-white/5 px-3 py-2 ${className}`}
+      {...props}
+    />
+  );
+}
+
+export function Textarea({
+  className = '',
+  ...props
+}: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return (
+    <textarea
+      className={`min-h-24 rounded-md border border-white/15 bg-white/5 px-3 py-2 ${className}`}
       {...props}
     />
   );

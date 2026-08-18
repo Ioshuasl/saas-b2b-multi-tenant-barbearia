@@ -5,6 +5,15 @@ export const RESERVED_TENANT_SLUGS = [
   'login',
   'signup',
   'health',
+  'agenda',
+  'clientes',
+  'inicio',
+  'configuracoes',
+  'forgot-password',
+  'reset-password',
+  'verify-email',
+  'accept-invite',
+  'agendamento',
 ] as const;
 
 export function slugifyTenantName(name: string): string {

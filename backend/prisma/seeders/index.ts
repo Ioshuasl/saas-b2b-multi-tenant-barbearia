@@ -41,7 +41,7 @@ async function seedTenant(input: {
   });
 
   if (skipped) {
-    console.log(`Seed ${input.slug} já existe — pulando.`);
+    console.log(`Seed ${input.slug} já existe — pulando criação do tenant.`);
     return;
   }
 
@@ -148,6 +148,149 @@ async function seedTenant(input: {
   });
 }
 
+function tenantCtx(tenantId: string, userId: string) {
+  return {
+    tenantId,
+    userId,
+    requestId: 'seed-panel',
+    role: 'OWNER',
+    locationScope: 'ALL' as const,
+    locationIds: [] as string[],
+  };
+}
+
+async function ensureStaff(input: {
+  tenantId: string;
+  userId: string;
+  staffId: string;
+  name: string;
+  homeLocationId: string;
+  linkedUserId?: string;
+}): Promise<void> {
+  const db = getTenantPrisma();
+  await db.runInTenantContext(tenantCtx(input.tenantId, input.userId), async (tx) => {
+    const existing = await tx.staff.findUnique({ where: { id: input.staffId } });
+    if (!existing) {
+      await tx.staff.create({
+        data: {
+          id: input.staffId,
+          tenantId: input.tenantId,
+          homeLocationId: input.homeLocationId,
+          userId: input.linkedUserId,
+          name: input.name,
+          commissionPercent: 0,
+          acceptsOnlineBooking: true,
+          active: true,
+        },
+      });
+    } else if (input.linkedUserId && existing.userId !== input.linkedUserId) {
+      await tx.staff.update({
+        where: { id: input.staffId },
+        data: { userId: input.linkedUserId },
+      });
+    }
+
+    const link = await tx.staffLocation.findUnique({
+      where: {
+        tenantId_staffId_locationId: {
+          tenantId: input.tenantId,
+          staffId: input.staffId,
+          locationId: input.homeLocationId,
+        },
+      },
+    });
+    if (!link) {
+      await tx.staffLocation.create({
+        data: {
+          tenantId: input.tenantId,
+          staffId: input.staffId,
+          locationId: input.homeLocationId,
+        },
+      });
+    }
+  });
+}
+
+async function ensureStaffUser(passwordHash: string): Promise<string> {
+  const db = getTenantPrisma();
+  return db.runInTenantContext(tenantCtx(SEED.tenantB.id, SEED.userBOwner.id), async (tx) => {
+    const existing = await tx.user.findUnique({ where: { email: SEED.userBStaff.email } });
+    if (!existing) {
+      await tx.user.create({
+        data: {
+          id: SEED.userBStaff.id,
+          tenantId: SEED.tenantB.id,
+          email: SEED.userBStaff.email,
+          passwordHash,
+          name: SEED.userBStaff.name,
+          role: 'STAFF',
+          status: 'ACTIVE',
+          emailVerifiedAt: new Date(),
+        },
+      });
+    }
+    const userId = existing?.id ?? SEED.userBStaff.id;
+    const locationLink = await tx.userLocation.findUnique({
+      where: {
+        tenantId_userId_locationId: {
+          tenantId: SEED.tenantB.id,
+          userId,
+          locationId: SEED.locationBCentro.id,
+        },
+      },
+    });
+    if (!locationLink) {
+      await tx.userLocation.create({
+        data: {
+          tenantId: SEED.tenantB.id,
+          userId,
+          locationId: SEED.locationBCentro.id,
+        },
+      });
+    }
+    return userId;
+  });
+}
+
+async function ensurePanelFixtures(passwordHash: string): Promise<void> {
+  await ensureStaff({
+    tenantId: SEED.tenantA.id,
+    userId: SEED.userAOwner.id,
+    staffId: SEED.staffA.id,
+    name: SEED.staffA.name,
+    homeLocationId: SEED.locationA.id,
+  });
+
+  const staffUserId = await ensureStaffUser(passwordHash);
+
+  await ensureStaff({
+    tenantId: SEED.tenantB.id,
+    userId: SEED.userBOwner.id,
+    staffId: SEED.staffBCentro.id,
+    name: SEED.staffBCentro.name,
+    homeLocationId: SEED.locationBCentro.id,
+    linkedUserId: staffUserId,
+  });
+  await ensureStaff({
+    tenantId: SEED.tenantB.id,
+    userId: SEED.userBOwner.id,
+    staffId: SEED.staffBCentroOther.id,
+    name: SEED.staffBCentroOther.name,
+    homeLocationId: SEED.locationBCentro.id,
+  });
+  await ensureStaff({
+    tenantId: SEED.tenantB.id,
+    userId: SEED.userBOwner.id,
+    staffId: SEED.staffBJardim.id,
+    name: SEED.staffBJardim.name,
+    homeLocationId: SEED.locationBJardim.id,
+  });
+
+  console.log(
+    'Seed painel: Navalha (1 staff) + Corte Fino (Carlos STAFF Centro, Rafael Centro, Diego Jardim).',
+  );
+}
+
 async function main(): Promise<void> {
   const passwordHash = await hash(SEED.password);
 
@@ -184,6 +327,8 @@ async function main(): Promise<void> {
       },
     ],
   });
+
+  await ensurePanelFixtures(passwordHash);
 
   console.log('Seed S0 ok: Navalha (1 unidade) + Corte Fino (2 unidades).');
 }

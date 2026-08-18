@@ -7,7 +7,7 @@
 
 **Pré-requisito:** [S0](./S0-fundacao.md) código + aceite local (Compose, RLS, `GET /locations/:id` probe, login mock).
 
-**Estado (2026-08-18):** Sprint 1 **código** (Blocos 1–4). Aceite ponta a ponta pendente.
+**Estado (2026-08-18):** Sprint 1 **concluída** (Blocos 1–4 + aceite local API + Playwright).
 
 ---
 

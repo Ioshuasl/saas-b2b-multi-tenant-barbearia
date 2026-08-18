@@ -1,4 +1,4 @@
-import type { ApiResponse } from '@repo/contracts';
+import type { ApiResponse, ApiSuccess } from '@repo/contracts';
 import { isApiError } from '@repo/contracts';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3333';
@@ -18,6 +18,7 @@ export class ApiClientError extends Error {
 type RequestOptions = RequestInit & {
   query?: Record<string, string | undefined>;
   skipRefresh?: boolean;
+  anonymous?: boolean;
 };
 
 class ApiClient {
@@ -38,19 +39,28 @@ class ApiClient {
   }
 
   async request<T>(path: string, init: RequestOptions = {}): Promise<T> {
-    const { query, skipRefresh, headers, ...rest } = init;
-    const url = this.buildUrl(path, query);
-    const res = await this.fetchRaw(url, rest, headers);
+    const envelope = await this.requestEnvelope<T>(path, init);
+    return envelope.data;
+  }
 
-    if (res.status === 401 && !skipRefresh && !path.startsWith('/auth/refresh')) {
+  async requestPublic<T>(path: string, init: RequestOptions = {}): Promise<T> {
+    return this.request<T>(path, { ...init, anonymous: true, skipRefresh: true });
+  }
+
+  async requestEnvelope<T>(path: string, init: RequestOptions = {}): Promise<ApiSuccess<T>> {
+    const { query, skipRefresh, anonymous, headers, ...rest } = init;
+    const url = this.buildUrl(path, query);
+    const res = await this.fetchRaw(url, rest, headers, anonymous);
+
+    if (res.status === 401 && !skipRefresh && !anonymous && !path.startsWith('/auth/refresh')) {
       await (this.refreshing ??= this.refresh().finally(() => {
         this.refreshing = null;
       }));
-      const retry = await this.fetchRaw(url, rest, headers);
-      return this.parse<T>(retry);
+      const retry = await this.fetchRaw(url, rest, headers, anonymous);
+      return this.parseEnvelope<T>(retry);
     }
 
-    return this.parse<T>(res);
+    return this.parseEnvelope<T>(res);
   }
 
   async refresh(): Promise<void> {
@@ -77,15 +87,16 @@ class ApiClient {
     url: string,
     init: RequestInit,
     headers?: HeadersInit,
+    anonymous?: boolean,
   ): Promise<Response> {
     try {
       return await fetch(url, {
         ...init,
-        credentials: 'include',
+        credentials: anonymous ? 'omit' : 'include',
         headers: {
           'Content-Type': 'application/json',
-          ...(this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {}),
-          ...(this.locationId ? { 'X-Location-Id': this.locationId } : {}),
+          ...(!anonymous && this.accessToken ? { Authorization: `Bearer ${this.accessToken}` } : {}),
+          ...(!anonymous && this.locationId ? { 'X-Location-Id': this.locationId } : {}),
           ...(headers ?? {}),
         },
       });
@@ -98,15 +109,27 @@ class ApiClient {
     }
   }
 
-  private async parse<T>(res: Response): Promise<T> {
-    const body = (await res.json()) as ApiResponse<T>;
+  private async parseEnvelope<T>(res: Response): Promise<ApiSuccess<T>> {
+    if (res.status === 204) {
+      return { data: undefined as T };
+    }
+
+    const text = await res.text();
+    if (!text) {
+      if (!res.ok) {
+        throw new ApiClientError('INTERNAL_ERROR', 'Resposta inválida da API.', res.status);
+      }
+      return { data: undefined as T };
+    }
+
+    const body = JSON.parse(text) as ApiResponse<T>;
     if (!res.ok || isApiError(body)) {
       if (isApiError(body)) {
         throw new ApiClientError(body.error.code, body.error.message, res.status, body.error.details);
       }
       throw new ApiClientError('INTERNAL_ERROR', 'Resposta inválida da API.', res.status);
     }
-    return body.data;
+    return { data: body.data, meta: body.meta };
   }
 }
 

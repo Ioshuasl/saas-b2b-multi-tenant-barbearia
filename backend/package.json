@@ -11,11 +11,18 @@
     "typecheck": "tsx scripts/prisma-generate.ts && tsc -p tsconfig.json --noEmit",
     "lint": "eslint src --config ../eslint.config.mjs",
     "arch:check": "depcruise src --config .dependency-cruiser.cjs",
-    "test": "echo \"no tests yet\"",
+    "test": "vitest run",
+    "test:unit": "vitest run",
+    "test:watch": "vitest",
     "test:kms": "tsx scripts/check-kms.ts",
     "test:rls": "tsx scripts/check-rls.ts",
     "test:locations": "tsx scripts/smoke-locations.ts",
     "test:identity": "tsx scripts/smoke-identity.ts",
+    "test:customers": "tsx scripts/smoke-customers.ts",
+    "test:scheduling-domain": "tsx scripts/check-scheduling-domain.ts",
+    "test:scheduling-panel": "tsx scripts/smoke-scheduling-panel.ts",
+    "test:scheduling": "tsx scripts/smoke-scheduling.ts",
+    "test:public-booking": "tsx scripts/smoke-public-booking.ts",
     "db:generate": "tsx scripts/prisma-generate.ts",
     "db:migrate": "tsx scripts/migrate-deploy.ts",
     "db:seed": "tsx scripts/prisma-generate.ts && tsx prisma/seeders/index.ts"
@@ -45,6 +52,7 @@
     "dependency-cruiser": "^16.10.0",
     "prisma": "^6.5.0",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^4.1.10"
   }
 }

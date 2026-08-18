@@ -19,9 +19,19 @@ export function AppNav({ showWizard }: { showWizard: boolean }) {
 
   return (
     <nav className="flex flex-col gap-1 p-3">
-      <NavLink href="/" active={pathname === '/'}>
-        Início
-      </NavLink>
+      <Can permission="agenda.read">
+        <NavLink href="/" active={pathname === '/' || pathname.startsWith('/agenda')}>
+          Agenda
+        </NavLink>
+      </Can>
+      <Can permission="customers.read">
+        <NavLink
+          href="/clientes"
+          active={pathname === '/clientes' || pathname.startsWith('/clientes/')}
+        >
+          Clientes
+        </NavLink>
+      </Can>
       {showWizard && role === 'OWNER' ? (
         <NavLink href="/inicio" active={pathname === '/inicio'}>
           Configurar loja

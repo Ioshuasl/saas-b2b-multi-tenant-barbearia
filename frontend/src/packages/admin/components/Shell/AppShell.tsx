@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, type ReactNode } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useSessionMeHook } from '@/packages/admin/hooks/Session/useSessionMeHook';
 import { useSessionLogoutHook } from '@/packages/admin/hooks/Session/useSessionLogoutHook';
 import { useLocationListHook } from '@/packages/admin/hooks/Location/useLocationListHook';
@@ -17,7 +17,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const onboardingQuery = useOnboardingGetHook(meQuery.isSuccess);
   const logout = useSessionLogoutHook();
   const router = useRouter();
-  const pathname = usePathname();
   const me = useSessionStore((s) => s.me);
   const locationId = useSessionStore((s) => s.locationId);
   const setLocationId = useSessionStore((s) => s.setLocationId);
@@ -44,12 +43,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       setLocationId(first.id);
     }
   }, [scoped, locationId, setLocationId]);
-
-  useEffect(() => {
-    if (me?.role !== 'OWNER') return;
-    if (!onboardingQuery.data || onboardingQuery.data.publishedAt) return;
-    if (pathname === '/') router.replace('/inicio');
-  }, [me?.role, onboardingQuery.data, pathname, router]);
 
   if (meQuery.isLoading || meQuery.isError || !me) {
     return <p className="p-6 text-sm opacity-70">Carregando sessão…</p>;

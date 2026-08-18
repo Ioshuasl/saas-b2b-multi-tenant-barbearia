@@ -21,6 +21,11 @@ export type ApiErrorBody = {
 
 export type ApiResponse<T> = ApiSuccess<T> | ApiErrorBody;
 
+export * from './customer.js';
+export * from './appointment.js';
+export * from './availability.js';
+export * from './public_booking.js';
+
 export function isApiError(body: unknown): body is ApiErrorBody {
   return (
     typeof body === 'object' &&

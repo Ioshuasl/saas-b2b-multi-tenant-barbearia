@@ -7,6 +7,8 @@ import { WorkingWindowsRepository } from './repositories/working_window/working_
 import { SnapshotRepository } from './repositories/service/service_snapshot.repository.js';
 import { ServesLocationRepository } from './repositories/staff/staff_serves_location.repository.js';
 import { GetPublicRepository } from './repositories/tenant/tenant_get_public.repository.js';
+import { PublicRepository } from './repositories/location/location_public.repository.js';
+import type { PublicLocationDetail, PublicTenantPayload } from './types/location/location_public.types.js';
 
 const getLocation = new GetRepository();
 const getStaffByUser = new GetByUserRepository();
@@ -14,6 +16,7 @@ const workingWindows = new WorkingWindowsRepository();
 const snapshot = new SnapshotRepository();
 const servesLocation = new ServesLocationRepository();
 const getPublic = new GetPublicRepository();
+const locationPublic = new PublicRepository();
 
 function systemCtx(tenantId: string): RequestContext {
   return {
@@ -73,10 +76,56 @@ export async function staffServesLocation(
   return servesLocation.execute(systemCtx(tenantId), staffId, locationId);
 }
 
-export async function getTenantPublic(slug: string): Promise<{
-  id: string;
-  name: string;
-  locations: Array<{ id: string; slug: string; name: string }>;
+export function isLocationInScope(
+  locationScope: RequestContext['locationScope'],
+  locationIds: readonly string[],
+  locationId: string,
+): boolean {
+  return inLocationScope(locationScope, locationIds, locationId);
+}
+
+export { zonedLocalToUtc } from './helpers/working_windows.js';
+
+export async function getLocationBookingSettings(
+  tenantId: string,
+  locationId: string,
+): Promise<{
+  timezone: string;
+  bookingLeadTimeMinutes: number;
+  bookingHorizonDays: number;
 } | null> {
-  return getPublic.execute(slug);
+  const location = await getLocation.execute(systemCtx(tenantId), locationId);
+  if (!location) return null;
+  return {
+    timezone: location.timezone,
+    bookingLeadTimeMinutes: location.bookingLeadTimeMinutes,
+    bookingHorizonDays: location.bookingHorizonDays,
+  };
+}
+export async function getTenantPublic(slug: string): Promise<PublicTenantPayload | null> {
+  const tenant = await getPublic.execute(slug);
+  if (!tenant) return null;
+
+  const locations = await locationPublic.listLocations(systemCtx(tenant.id));
+  return {
+    id: tenant.id,
+    name: tenant.name,
+    slug,
+    logoUrl: tenant.logoUrl,
+    locations,
+  };
+}
+
+export async function getPublicLocationBySlug(
+  tenantId: string,
+  locationSlug: string,
+): Promise<PublicLocationDetail | null> {
+  return locationPublic.getBySlug(systemCtx(tenantId), locationSlug);
+}
+
+export async function getLocationCancelDeadlineHours(
+  tenantId: string,
+  locationId: string,
+): Promise<number | null> {
+  return locationPublic.getCancelDeadlineHours(systemCtx(tenantId), locationId);
 }
