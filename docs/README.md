@@ -47,6 +47,12 @@ Planejamento do MVP. Numeração alinhada ao prontuário odontológico de refer�
 
 Pesquisa: [pesquisa/README.md](./pesquisa/README.md) (billing fase 2, WAHA, riscos).
 
+### Desenvolvimento
+
+Acompanhamento de sprints (não substitui 01–17): [desenvolvimento/README.md](./desenvolvimento/README.md).
+
+- **Sprint 0 (planejada):** [S0 — Fundação](./desenvolvimento/sprints/S0-fundacao.md)
+
 ### Requisitos (Parte 3 ✅)
 
 Catálogo rastreável — ver [requisitos/README.md](./requisitos/README.md). E6 (WAHA) e E8 (billing manual) alinhados aos ADRs na Parte 5.
@@ -91,7 +97,8 @@ Detalhe por bounded context — [modulos/README.md](./modulos/README.md).
 3. Leia `10`, `17` e o ADR-0007 antes de implementar auth, dado pessoal ou multi-tenant.
 4. Leia `05`, `06`, `16` e os ADRs base **antes** de escrever código.
 5. Leia `09` (UI), `12` (DoD/testes) e `15` (linguagem) ao implementar telas e contratos.
-6. Toda decisão técnica nova entra como ADR em `adr/`.
+6. Execute a sprint pelo checklist em `desenvolvimento/sprints/` (comece pela [S0](./desenvolvimento/sprints/S0-fundacao.md)); registre o log em `desenvolvimento/PROGRESSO.md`.
+7. Toda decisão técnica nova entra como ADR em `adr/`.
 
 ## Plano de partes restantes
 
@@ -102,3 +109,4 @@ Detalhe por bounded context — [modulos/README.md](./modulos/README.md).
 | **4** | Segurança/LGPD, baseline, infra, métricas, ADRs de provedores ✅ |
 | **5** | Frontend, testes, glossário, roadmap S0–S8 ✅ |
 | **6** | Limpeza do legado (`01`/`03`/`04`, `pesquisa/`) ✅ |
+| **S0** | Checklist de implementação — [S0-fundacao.md](./desenvolvimento/sprints/S0-fundacao.md) (planejada) |

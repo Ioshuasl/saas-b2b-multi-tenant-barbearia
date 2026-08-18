@@ -1,0 +1,39 @@
+{
+  "name": "saas-barbearia",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter @repo/backend --filter @repo/frontend run dev",
+    "dev:api": "pnpm --filter @repo/backend dev",
+    "dev:worker": "pnpm --filter @repo/backend dev:worker",
+    "dev:web": "pnpm --filter @repo/frontend dev",
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm --filter @repo/contracts build && pnpm -r --filter !@repo/contracts run typecheck",
+    "arch:check": "pnpm --filter @repo/backend arch:check",
+    "test": "pnpm -r run test",
+    "test:rls": "pnpm --filter @repo/backend test:rls",
+    "test:kms": "pnpm --filter @repo/backend test:kms",
+    "test:locations": "pnpm --filter @repo/backend test:locations",
+    "db:generate": "pnpm --filter @repo/backend db:generate",
+    "db:migrate": "pnpm --filter @repo/backend db:migrate",
+    "db:seed": "pnpm --filter @repo/backend db:seed"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "eslint": "^9.22.0",
+    "globals": "^16.0.0",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.1"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss": ">=8.5.18",
+      "sharp": ">=0.35.0",
+      "deepmerge-ts": ">=8.0.0"
+    }
+  }
+}

@@ -320,7 +320,7 @@ Incluir na S0 (sem mudar pontos dos épicos de produto):
 6. CI: lint, typecheck, arch, gitleaks, audit
 7. Documentação de runbook mínimo: vazamento de credencial, suspeita de cross-tenant, sessão WAHA caída
 
-Detalhe de implementação de código fica para quando a implementação começar — este doc é a política.
+Checklist executável: [Sprint 0 — Fundação](./desenvolvimento/sprints/S0-fundacao.md). Este doc (§12) permanece a **política**; o detalhe de blocos/paths está na sprint.
 
 ---
 

@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Rede / barbearia assinante. docs/07 §2
+model Tenant {
+  id          String    @id @db.Uuid
+  name        String
+  slug        String    @unique @db.Citext
+  logoUrl     String?   @map("logo_url")
+  brandColor  String?   @map("brand_color")
+  status      String    @default("TRIALING")
+  trialEndsAt DateTime? @map("trial_ends_at") @db.Timestamptz
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  locations    Location[]
+  users        User[]
+  userLocations UserLocation[]
+  cryptoKeys   TenantCryptoKey[]
+  auditLogs    AuditLog[]
+  outboxEvents OutboxEvent[]
+
+  @@map("tenant")
+}
+
+/// Unidade / loja. Fronteira operacional (não de RLS).
+model Location {
+  id                       String   @id @db.Uuid
+  tenantId                 String   @map("tenant_id") @db.Uuid
+  slug                     String   @db.Citext
+  name                     String
+  timezone                 String   @default("America/Sao_Paulo")
+  phone                    String?
+  email                    String?  @db.Citext
+  bookingLeadTimeMinutes   Int      @default(60) @map("booking_lead_time_minutes")
+  bookingHorizonDays       Int      @default(60) @map("booking_horizon_days")
+  cancelDeadlineHours      Int      @default(2) @map("cancel_deadline_hours")
+  acceptsOnlineBooking     Boolean  @default(true) @map("accepts_online_booking")
+  isDefault                Boolean  @default(false) @map("is_default")
+  active                   Boolean  @default(true)
+  createdAt                DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  userLocations UserLocation[]
+
+  @@unique([tenantId, slug])
+  @@map("location")
+}
+
+model User {
+  id              String    @id @db.Uuid
+  tenantId        String    @map("tenant_id") @db.Uuid
+  email           String    @unique @db.Citext
+  passwordHash    String    @map("password_hash")
+  name            String
+  phone           String?
+  role            String
+  status          String    @default("ACTIVE")
+  emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamptz
+  lastLoginAt     DateTime? @map("last_login_at") @db.Timestamptz
+  failedAttempts  Int       @default(0) @map("failed_attempts") @db.SmallInt
+  lockedUntil     DateTime? @map("locked_until") @db.Timestamptz
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  userLocations UserLocation[]
+
+  @@map("user")
+}
+
+model UserLocation {
+  tenantId   String @map("tenant_id") @db.Uuid
+  userId     String @map("user_id") @db.Uuid
+  locationId String @map("location_id") @db.Uuid
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+  location Location @relation(fields: [locationId], references: [id])
+
+  @@id([tenantId, userId, locationId])
+  @@map("user_location")
+}
+
+model TenantCryptoKey {
+  id          String    @id @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  keyVersion  Int       @default(1) @map("key_version")
+  algorithm   String    @default("AES-256-GCM")
+  wrappedDek  String    @map("wrapped_dek")
+  kekProvider String    @default("local_vps") @map("kek_provider")
+  status      String    @default("ACTIVE")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  retiredAt   DateTime? @map("retired_at") @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, keyVersion])
+  @@map("tenant_crypto_key")
+}
+
+model AuditLog {
+  id          String   @id @db.Uuid
+  tenantId    String?  @map("tenant_id") @db.Uuid
+  actorUserId String?  @map("actor_user_id") @db.Uuid
+  actorType   String   @map("actor_type")
+  action      String
+  resourceType String  @map("resource_type")
+  resourceId  String?  @map("resource_id") @db.Uuid
+  customerId  String?  @map("customer_id") @db.Uuid
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
+  metadata    Json?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, createdAt(sort: Desc)], map: "idx_audit_tenant_time")
+  @@map("audit_log")
+}
+
+model OutboxEvent {
+  id          String    @id @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  name        String
+  payload     Json
+  occurredAt  DateTime  @default(now()) @map("occurred_at") @db.Timestamptz
+  processedAt DateTime? @map("processed_at") @db.Timestamptz
+  attempts    Int       @default(0) @db.SmallInt
+  lastError   String?   @map("last_error")
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("outbox_event")
+}
