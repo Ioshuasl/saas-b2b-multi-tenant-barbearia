@@ -51,7 +51,8 @@ Pesquisa: [pesquisa/README.md](./pesquisa/README.md) (billing fase 2, WAHA, risc
 
 Acompanhamento de sprints (não substitui 01–17): [desenvolvimento/README.md](./desenvolvimento/README.md).
 
-- **Sprint 0 (planejada):** [S0 — Fundação](./desenvolvimento/sprints/S0-fundacao.md)
+- **Sprint 0 (código / aceite local):** [S0 — Fundação](./desenvolvimento/sprints/S0-fundacao.md)
+- **Sprint 1 (planejada):** [S1 — Identidade, rede e cadastros](./desenvolvimento/sprints/S1-identidade-rede.md)
 
 ### Requisitos (Parte 3 ✅)
 

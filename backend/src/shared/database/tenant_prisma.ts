@@ -30,6 +30,21 @@ export class TenantPrisma {
       return fn(tx);
     });
   }
+
+  /**
+   * Signup atômico: provisioning + `app.tenant_id` na mesma TX
+   * (tenant INSERT + location/user/seeds com RLS).
+   */
+  async runSignupProvisioning<T>(
+    tenantId: string,
+    fn: (tx: DbTransaction) => Promise<T>,
+  ): Promise<T> {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT set_config('app.provisioning', 'on', true)`;
+      await tx.$executeRaw`SELECT set_config('app.tenant_id', ${tenantId}, true)`;
+      return fn(tx);
+    });
+  }
 }
 
 let singleton: PrismaClient | undefined;

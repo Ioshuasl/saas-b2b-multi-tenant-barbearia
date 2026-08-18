@@ -1,62 +1,62 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useAuthLoginFormHook } from '@/packages/public/hooks/Auth/useAuthLoginFormHook';
+import { useAuthLoginHook } from '@/packages/public/hooks/Auth/useAuthLoginHook';
 import { useHealthGetHook } from '@/packages/public/hooks/Health/useHealthGetHook';
+import { AuthScreen } from '@/packages/public/components/Auth/AuthScreen';
+import { Button, Field, Input } from '@/shared/ui/Ui';
+import { apiErrorMessage } from '@/shared/helpers/ApiErrorMessage';
+import { onFormSubmit } from '@/shared/helpers/SubmitForm';
+import type { AuthLoginValues } from '@/packages/public/types/Auth/AuthTypes';
 
 export function LoginForm() {
-  const [notice, setNotice] = useState<string | null>(null);
+  const form = useAuthLoginFormHook();
+  const login = useAuthLoginHook();
   const health = useHealthGetHook();
+  const router = useRouter();
 
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setNotice('Login real entra na Sprint 1. Esta tela é só o mock da fundação.');
+  async function onSave(values: AuthLoginValues) {
+    try {
+      await login.mutateAsync(values);
+      router.push('/');
+    } catch {
+      /* erro no mutation */
+    }
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 p-6">
-      <div>
-        <p className="text-sm tracking-wide text-[var(--accent)]">Sprint 0</p>
-        <h1 className="mt-1 text-3xl font-semibold">Entrar</h1>
-        <p className="mt-2 text-sm opacity-80">
-          Painel da barbearia. Autenticação de verdade (e-mail/senha) chega na próxima sprint.
-        </p>
-      </div>
-      <form onSubmit={onSubmit} className="flex flex-col gap-3">
-        <label className="flex flex-col gap-1 text-sm">
-          E-mail
-          <input
-            type="email"
-            name="email"
-            autoComplete="username"
-            className="rounded-md border border-white/15 bg-white/5 px-3 py-2"
-            placeholder="dono@barbearia.com"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Senha
-          <input
-            type="password"
-            name="password"
-            autoComplete="current-password"
-            className="rounded-md border border-white/15 bg-white/5 px-3 py-2"
-          />
-        </label>
-        <button
-          type="submit"
-          className="mt-2 rounded-md bg-[var(--accent)] px-3 py-2 font-medium text-black"
-        >
-          Entrar
-        </button>
+    <AuthScreen
+      title="Entrar"
+      description="Acesse o painel da sua barbearia."
+      footer={
+        <div className="flex flex-col gap-2 text-sm opacity-80">
+          <Link className="underline" href="/forgot-password">
+            Esqueci a senha
+          </Link>
+          <Link className="underline" href="/signup">
+            Criar conta da barbearia
+          </Link>
+          <p className="text-xs opacity-60">
+            API:{' '}
+            {health.isLoading ? 'verificando…' : health.isSuccess ? 'ok' : 'indisponível'}
+          </p>
+        </div>
+      }
+    >
+      <form className="flex flex-col gap-3" onSubmit={onFormSubmit(form.handleSubmit, onSave)}>
+        <Field label="E-mail" error={form.formState.errors.email?.message}>
+          <Input type="email" autoComplete="username" {...form.register('email')} />
+        </Field>
+        <Field label="Senha" error={form.formState.errors.password?.message}>
+          <Input type="password" autoComplete="current-password" {...form.register('password')} />
+        </Field>
+        {login.isError ? <p className="text-sm text-red-300">{apiErrorMessage(login.error)}</p> : null}
+        <Button type="submit" disabled={login.isPending}>
+          {login.isPending ? 'Entrando…' : 'Entrar'}
+        </Button>
       </form>
-      {notice ? <p className="text-sm text-[var(--accent)]">{notice}</p> : null}
-      <p className="text-xs opacity-60">
-        API:{' '}
-        {health.isLoading
-          ? 'verificando…'
-          : health.isSuccess
-            ? 'ok'
-            : 'indisponível (subir `pnpm dev:api`)'}
-      </p>
-    </main>
+    </AuthScreen>
   );
 }

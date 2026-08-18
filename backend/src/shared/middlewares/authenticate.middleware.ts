@@ -2,11 +2,14 @@ import type { NextFunction, Request, Response } from 'express';
 import { verifyAccessToken } from '../auth/jwt.js';
 import type { RequestContext } from '../domain/request_context.js';
 import { AppError } from '../domain/errors.js';
+import { getActor } from '../../modules/identity/identity_public.js';
+import { getStaffIdForUser } from '../../modules/locations/locations_public.js';
 
 export type AuthContext = {
   userId: string;
   tenantId: string;
   role: string;
+  staffId?: string;
   locationScope: RequestContext['locationScope'];
   locationIds: readonly string[];
 };
@@ -38,22 +41,31 @@ export async function authenticateMiddleware(
     }
 
     const claims = await verifyAccessToken(token);
+    const actor = await getActor(claims.sub, claims.tenantId);
+    if (!actor) {
+      throw new AppError('UNAUTHENTICATED', 'Token de acesso inválido ou expirado.', 401);
+    }
+
+    const locationIds = actor.locationIds === 'ALL' ? [] : actor.locationIds;
+    const locationScope = actor.locationIds === 'ALL' ? 'ALL' : 'RESTRICTED';
+    const staffId = await getStaffIdForUser(claims.sub, claims.tenantId);
 
     req.auth = {
       userId: claims.sub,
       tenantId: claims.tenantId,
-      role: claims.role,
-      locationScope: claims.locationScope,
-      locationIds: claims.locationIds,
+      role: actor.role,
+      staffId,
+      locationScope,
+      locationIds,
     };
 
     req.ctx = {
       tenantId: claims.tenantId,
       userId: claims.sub,
       requestId: req.requestId,
-      role: claims.role,
-      locationScope: claims.locationScope,
-      locationIds: claims.locationIds,
+      role: actor.role,
+      locationScope,
+      locationIds,
     };
 
     next();

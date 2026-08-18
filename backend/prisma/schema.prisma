@@ -16,17 +16,40 @@ model Tenant {
   brandColor  String?   @map("brand_color")
   status      String    @default("TRIALING")
   trialEndsAt DateTime? @map("trial_ends_at") @db.Timestamptz
+  onboarding  Json      @default("{}")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
-  locations    Location[]
-  users        User[]
-  userLocations UserLocation[]
-  cryptoKeys   TenantCryptoKey[]
-  auditLogs    AuditLog[]
-  outboxEvents OutboxEvent[]
+  locations         Location[]
+  users             User[]
+  userLocations     UserLocation[]
+  cryptoKeys        TenantCryptoKey[]
+  auditLogs         AuditLog[]
+  outboxEvents      OutboxEvent[]
+  invitations       Invitation[]
+  refreshTokens     RefreshTokenFamily[]
+  slugHistory       TenantSlugHistory[]
+  services          Service[]
+  businessHours     BusinessHours[]
+  emailTokens       EmailToken[]
+  staff             Staff[]
+  timeBlocks        TimeBlock[]
+  locationServices  LocationService[]
+  staffLocations    StaffLocation[]
+  staffServices     StaffService[]
+  locationSlugHistory LocationSlugHistory[]
 
   @@map("tenant")
+}
+
+model TenantSlugHistory {
+  slug      String   @id @db.Citext
+  tenantId  String   @map("tenant_id") @db.Uuid
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("tenant_slug_history")
 }
 
 /// Unidade / loja. Fronteira operacional (não de RLS).
@@ -38,6 +61,10 @@ model Location {
   timezone                 String   @default("America/Sao_Paulo")
   phone                    String?
   email                    String?  @db.Citext
+  address                  Json?
+  latitude                 Decimal? @db.Decimal(9, 6)
+  longitude                Decimal? @db.Decimal(9, 6)
+  coverUrl                 String?  @map("cover_url")
   bookingLeadTimeMinutes   Int      @default(60) @map("booking_lead_time_minutes")
   bookingHorizonDays       Int      @default(60) @map("booking_horizon_days")
   cancelDeadlineHours      Int      @default(2) @map("cancel_deadline_hours")
@@ -47,11 +74,30 @@ model Location {
   createdAt                DateTime @default(now()) @map("created_at") @db.Timestamptz
   updatedAt                DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
-  tenant        Tenant         @relation(fields: [tenantId], references: [id])
+  tenant        Tenant          @relation(fields: [tenantId], references: [id])
   userLocations UserLocation[]
+  businessHours BusinessHours[]
+  staffHome     Staff[]         @relation("StaffHomeLocation")
+  staffLocations StaffLocation[]
+  locationServices LocationService[]
+  timeBlocks    TimeBlock[]
+  slugHistory   LocationSlugHistory[]
 
   @@unique([tenantId, slug])
   @@map("location")
+}
+
+model LocationSlugHistory {
+  tenantId   String   @map("tenant_id") @db.Uuid
+  slug       String   @db.Citext
+  locationId String   @map("location_id") @db.Uuid
+  expiresAt  DateTime @map("expires_at") @db.Timestamptz
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id])
+  location Location @relation(fields: [locationId], references: [id])
+
+  @@id([tenantId, slug])
+  @@map("location_slug_history")
 }
 
 model User {
@@ -70,8 +116,11 @@ model User {
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
-  tenant        Tenant         @relation(fields: [tenantId], references: [id])
-  userLocations UserLocation[]
+  tenant         Tenant               @relation(fields: [tenantId], references: [id])
+  userLocations  UserLocation[]
+  refreshTokens  RefreshTokenFamily[]
+  emailTokens    EmailToken[]
+  staff          Staff[]
 
   @@map("user")
 }
@@ -124,6 +173,192 @@ model AuditLog {
 
   @@index([tenantId, createdAt(sort: Desc)], map: "idx_audit_tenant_time")
   @@map("audit_log")
+}
+
+model EmailToken {
+  id         String    @id @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  purpose    String
+  tokenHash  String    @unique @map("token_hash")
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz
+  consumedAt DateTime? @map("consumed_at") @db.Timestamptz
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([userId, purpose], map: "idx_email_token_user_purpose")
+  @@map("email_token")
+}
+
+model Invitation {
+  id          String    @id @db.Uuid
+  tenantId    String    @map("tenant_id") @db.Uuid
+  email       String    @db.Citext
+  role        String
+  locationIds String[]  @default([]) @map("location_ids") @db.Uuid
+  tokenHash   String    @unique @map("token_hash")
+  expiresAt   DateTime  @map("expires_at") @db.Timestamptz
+  acceptedAt  DateTime? @map("accepted_at") @db.Timestamptz
+  invitedBy   String    @map("invited_by") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("invitation")
+}
+
+model RefreshTokenFamily {
+  id         String    @id @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  familyId   String    @map("family_id") @db.Uuid
+  tokenHash  String    @unique @map("token_hash")
+  expiresAt  DateTime  @map("expires_at") @db.Timestamptz
+  consumedAt DateTime? @map("consumed_at") @db.Timestamptz
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamptz
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([userId, familyId], map: "idx_refresh_family")
+  @@map("refresh_token_family")
+}
+
+model Service {
+  id               String    @id @db.Uuid
+  tenantId         String    @map("tenant_id") @db.Uuid
+  name             String
+  description      String?
+  durationMinutes  Int       @map("duration_minutes") @db.SmallInt
+  bufferMinutes    Int       @default(0) @map("buffer_minutes") @db.SmallInt
+  priceCents       BigInt    @default(0) @map("price_cents")
+  color            String?
+  active           Boolean   @default(true)
+  visibleOnline    Boolean   @default(true) @map("visible_online")
+  sortOrder        Int       @default(0) @map("sort_order")
+  deletedAt        DateTime? @map("deleted_at") @db.Timestamptz
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant           Tenant            @relation(fields: [tenantId], references: [id])
+  locationServices LocationService[]
+  staffServices    StaffService[]
+
+  @@map("service")
+}
+
+model LocationService {
+  tenantId                 String  @map("tenant_id") @db.Uuid
+  locationId               String  @map("location_id") @db.Uuid
+  serviceId                String  @map("service_id") @db.Uuid
+  priceCentsOverride       BigInt? @map("price_cents_override")
+  durationMinutesOverride  Int?    @map("duration_minutes_override") @db.SmallInt
+  active                   Boolean @default(true)
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id])
+  location Location @relation(fields: [locationId], references: [id])
+  service  Service  @relation(fields: [serviceId], references: [id])
+
+  @@id([locationId, serviceId])
+  @@map("location_service")
+}
+
+model ServiceCatalogTemplate {
+  code             String @id
+  name             String
+  durationMinutes  Int    @map("duration_minutes") @db.SmallInt
+  sortOrder        Int    @map("sort_order")
+
+  @@map("service_catalog_template")
+}
+
+model Staff {
+  id                     String    @id @db.Uuid
+  tenantId               String    @map("tenant_id") @db.Uuid
+  homeLocationId         String    @map("home_location_id") @db.Uuid
+  userId                 String?   @map("user_id") @db.Uuid
+  name                   String
+  photoUrl               String?   @map("photo_url")
+  bio                    String?
+  commissionPercent      Decimal   @default(0) @map("commission_percent") @db.Decimal(5, 2)
+  acceptsOnlineBooking   Boolean   @default(true) @map("accepts_online_booking")
+  active                 Boolean   @default(true)
+  deletedAt              DateTime? @map("deleted_at") @db.Timestamptz
+  createdAt              DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt              DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant         Tenant          @relation(fields: [tenantId], references: [id])
+  homeLocation   Location        @relation("StaffHomeLocation", fields: [homeLocationId], references: [id])
+  user           User?           @relation(fields: [userId], references: [id])
+  staffLocations StaffLocation[]
+  staffServices  StaffService[]
+  businessHours  BusinessHours[]
+  timeBlocks     TimeBlock[]
+
+  @@map("staff")
+}
+
+model StaffLocation {
+  tenantId   String @map("tenant_id") @db.Uuid
+  staffId    String @map("staff_id") @db.Uuid
+  locationId String @map("location_id") @db.Uuid
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id])
+  staff    Staff    @relation(fields: [staffId], references: [id])
+  location Location @relation(fields: [locationId], references: [id])
+
+  @@id([tenantId, staffId, locationId])
+  @@map("staff_location")
+}
+
+model StaffService {
+  tenantId  String @map("tenant_id") @db.Uuid
+  staffId   String @map("staff_id") @db.Uuid
+  serviceId String @map("service_id") @db.Uuid
+
+  tenant  Tenant  @relation(fields: [tenantId], references: [id])
+  staff   Staff   @relation(fields: [staffId], references: [id])
+  service Service @relation(fields: [serviceId], references: [id])
+
+  @@id([staffId, serviceId])
+  @@map("staff_service")
+}
+
+model BusinessHours {
+  id         String   @id @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  locationId String   @map("location_id") @db.Uuid
+  staffId    String?  @map("staff_id") @db.Uuid
+  weekday    Int      @db.SmallInt
+  startsAt   DateTime @map("starts_at") @db.Time
+  endsAt     DateTime @map("ends_at") @db.Time
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id])
+  location Location @relation(fields: [locationId], references: [id])
+  staff    Staff?   @relation(fields: [staffId], references: [id])
+
+  @@map("business_hours")
+}
+
+model TimeBlock {
+  id         String   @id @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  locationId String   @map("location_id") @db.Uuid
+  staffId    String?  @map("staff_id") @db.Uuid
+  startsAt   DateTime @map("starts_at") @db.Timestamptz
+  endsAt     DateTime @map("ends_at") @db.Timestamptz
+  reason     String
+  rrule      String?
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id])
+  location Location @relation(fields: [locationId], references: [id])
+  staff    Staff?   @relation(fields: [staffId], references: [id])
+
+  @@map("time_block")
 }
 
 model OutboxEvent {

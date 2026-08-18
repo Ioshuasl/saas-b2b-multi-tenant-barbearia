@@ -18,6 +18,8 @@
     "test:rls": "pnpm --filter @repo/backend test:rls",
     "test:kms": "pnpm --filter @repo/backend test:kms",
     "test:locations": "pnpm --filter @repo/backend test:locations",
+    "test:identity": "pnpm --filter @repo/backend test:identity",
+    "test:e2e": "pnpm --filter @repo/frontend test:e2e",
     "db:generate": "pnpm --filter @repo/backend db:generate",
     "db:migrate": "pnpm --filter @repo/backend db:migrate",
     "db:seed": "pnpm --filter @repo/backend db:seed"

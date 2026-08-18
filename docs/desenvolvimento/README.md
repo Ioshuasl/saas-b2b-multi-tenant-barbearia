@@ -19,7 +19,8 @@ Pasta **somente** para acompanhamento do desenvolvimento (scaffold, sprints, dec
 
 ## Status atual
 
-- **Fase:** Sprint 0 — Fundação técnica + segurança (E9 parcial) — **código entregue** (aceite local)
-- **Próximo:** Sprint 1 — Identidade, rede e cadastros
+- **Fase:** Sprint 1 — Identidade, rede e cadastros (E1 + E2) — **código (Blocos 1–4)**
+- **Anterior:** Sprint 0 — Fundação — **código / aceite local**
 - **Especificação:** [`../README.md`](../README.md)
+- **Checklist S1:** [`sprints/S1-identidade-rede.md`](./sprints/S1-identidade-rede.md)
 - **Checklist S0:** [`sprints/S0-fundacao.md`](./sprints/S0-fundacao.md)

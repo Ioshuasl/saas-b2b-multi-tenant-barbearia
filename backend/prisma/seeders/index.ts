@@ -21,8 +21,14 @@ async function seedTenant(input: {
 }): Promise<void> {
   const db = getTenantPrisma();
   const kms = getKeyManagement();
+  let skipped = false;
 
   await db.runProvisioning(async (tx) => {
+    const existing = await tx.tenant.findUnique({ where: { id: input.tenantId } });
+    if (existing) {
+      skipped = true;
+      return;
+    }
     await tx.tenant.create({
       data: {
         id: input.tenantId,
@@ -33,6 +39,11 @@ async function seedTenant(input: {
       },
     });
   });
+
+  if (skipped) {
+    console.log(`Seed ${input.slug} já existe — pulando.`);
+    return;
+  }
 
   const ctx = {
     tenantId: input.tenantId,
@@ -90,6 +101,41 @@ async function seedTenant(input: {
         status: 'ACTIVE',
       },
     });
+
+    const services = [
+      { name: 'Corte', durationMinutes: 40, sortOrder: 1 },
+      { name: 'Barba', durationMinutes: 20, sortOrder: 2 },
+      { name: 'Corte + barba', durationMinutes: 50, sortOrder: 3 },
+    ];
+    for (const service of services) {
+      await tx.service.create({
+        data: {
+          id: idGenerator.next(),
+          tenantId: input.tenantId,
+          name: service.name,
+          durationMinutes: service.durationMinutes,
+          priceCents: 0n,
+          sortOrder: service.sortOrder,
+        },
+      });
+    }
+
+    const startsAt = new Date(Date.UTC(1970, 0, 1, 9, 0, 0));
+    const endsAt = new Date(Date.UTC(1970, 0, 1, 19, 0, 0));
+    for (const location of input.locations) {
+      for (const weekday of [1, 2, 3, 4, 5, 6]) {
+        await tx.businessHours.create({
+          data: {
+            id: idGenerator.next(),
+            tenantId: input.tenantId,
+            locationId: location.id,
+            weekday,
+            startsAt,
+            endsAt,
+          },
+        });
+      }
+    }
   });
 
   await writeAuditLog({

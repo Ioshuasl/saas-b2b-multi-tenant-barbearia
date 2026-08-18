@@ -153,6 +153,12 @@ jobs:
           KEK_LOCAL_BASE64: YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=
         run: pnpm db:seed
 
+      - name: Identity core (signup/login/refresh)
+        working-directory: backend
+        env:
+          KEK_LOCAL_BASE64: YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=
+        run: pnpm test:identity
+
       - name: M1 probe GET /locations/:id
         working-directory: backend
         env:

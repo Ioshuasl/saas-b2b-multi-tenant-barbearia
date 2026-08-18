@@ -4,7 +4,7 @@ import './globals.css';
 
 export const metadata = {
   title: 'Agenda da barbearia',
-  description: 'Agendamento para barbearias — Sprint 0',
+  description: 'Agendamento para barbearias',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

@@ -1,7 +1,6 @@
 import { SignJWT, jwtVerify, importPKCS8, importSPKI } from 'jose';
 import { randomUUID } from 'node:crypto';
 import { env, jwtPrivateKey, jwtPublicKey } from '../config/env.js';
-import type { LocationScope } from '../domain/request_context.js';
 
 const ACCESS_TOKEN_TTL = '15m';
 const JWT_KID = 'v1';
@@ -10,8 +9,7 @@ export type AccessTokenClaims = {
   sub: string;
   tenantId: string;
   role: string;
-  locationScope: LocationScope;
-  locationIds: string[];
+  staffId?: string;
   jti: string;
 };
 
@@ -41,18 +39,20 @@ export async function signAccessToken(input: {
   userId: string;
   tenantId: string;
   role: string;
-  locationScope: LocationScope;
-  locationIds: readonly string[];
+  staffId?: string;
 }): Promise<string> {
   const key = await getPrivateKey();
   const jti = randomUUID();
 
-  return new SignJWT({
+  const claims: Record<string, string> = {
     tenantId: input.tenantId,
     role: input.role,
-    locationScope: input.locationScope,
-    locationIds: [...input.locationIds],
-  })
+  };
+  if (input.staffId) {
+    claims.staffId = input.staffId;
+  }
+
+  return new SignJWT(claims)
     .setProtectedHeader({ alg: 'RS256', kid: JWT_KID })
     .setSubject(input.userId)
     .setJti(jti)
@@ -72,18 +72,15 @@ export async function verifyAccessToken(token: string): Promise<VerifiedAccessTo
   const sub = payload.sub;
   const tenantId = payload.tenantId;
   const role = payload.role;
-  const locationScope = payload.locationScope;
-  const locationIds = payload.locationIds;
+  const staffId = payload.staffId;
   const jti = payload.jti;
 
   if (
     typeof sub !== 'string' ||
     typeof tenantId !== 'string' ||
     typeof role !== 'string' ||
-    (locationScope !== 'ALL' && locationScope !== 'RESTRICTED') ||
-    !Array.isArray(locationIds) ||
-    !locationIds.every((id) => typeof id === 'string') ||
-    typeof jti !== 'string'
+    typeof jti !== 'string' ||
+    (staffId !== undefined && typeof staffId !== 'string')
   ) {
     throw new Error('JWT claims inválidos.');
   }
@@ -92,8 +89,7 @@ export async function verifyAccessToken(token: string): Promise<VerifiedAccessTo
     sub,
     tenantId,
     role,
-    locationScope,
-    locationIds,
+    staffId: typeof staffId === 'string' ? staffId : undefined,
     jti,
     exp: payload.exp ?? 0,
     iat: payload.iat ?? 0,

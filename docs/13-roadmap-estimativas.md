@@ -13,7 +13,7 @@
 | Sprint | Objetivo | Épicos | Pontos | Entregável verificável |
 | --- | --- | --- | --- | --- |
 | **S0** | Fundação técnica + segurança | E9 (parcial) | ~30 | Monorepo, Docker Compose (Postgres, Redis, MinIO, Mailpit), Prisma + primeira migração com RLS, CI verde (gitleaks/audit/arch), Express `/health`, Next.js layout + login mockado; secrets/env Zod; esqueleto `audit_log`; port `KeyManagementPort` + `tenant_crypto_key`; seed com **2 tenants, um com 2 unidades**. Checklist: [desenvolvimento/sprints/S0-fundacao.md](./desenvolvimento/sprints/S0-fundacao.md) |
-| **S1** | Identidade, rede e cadastros | E1, E2 | ~40 | Signup cria tenant + unidade padrão + OWNER; login/refresh; convite; RBAC + `user_locations`; CRUD unidades/serviços/staff/horários/bloqueios; seletor oculto com 1 unidade |
+| **S1** | Identidade, rede e cadastros | E1, E2 | ~40 | Signup cria tenant + unidade padrão + OWNER; login/refresh; convite; RBAC + `user_locations`; CRUD unidades/serviços/staff/horários/bloqueios; seletor oculto com 1 unidade. Checklist: [desenvolvimento/sprints/S1-identidade-rede.md](./desenvolvimento/sprints/S1-identidade-rede.md) |
 | **S2** | Clientes e motor de agenda | E3, E4 (núcleo) | ~45 | Cadastro/busca de clientes (E.164); disponibilidade em SQL; criar/editar/cancelar; `EXCLUDE` anti-overbooking **por staff** (todas as unidades); 50 req no mesmo slot = 1 sucesso |
 | **S3** | Agenda no painel | E4 (UI) | ~40 | Visão dia/semana; status; pagamento ao concluir; mobile-first do barbeiro; STAFF só a própria agenda |
 | **S4** | Página pública | E4 (público) | ~40 | `/{tenant}` seletor ou redirect; `/{tenant}/{unidade}` em ≤ 4 telas; token de cancelamento; LCP < 2,5 s |
