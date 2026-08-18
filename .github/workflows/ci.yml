@@ -189,11 +189,17 @@ jobs:
           KEK_LOCAL_BASE64: YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=
         run: pnpm test:public-booking
 
-      - name: Public booking API (vitest)
+      - name: Unit + API (vitest)
         working-directory: backend
         env:
           KEK_LOCAL_BASE64: YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=
-        run: pnpm exec vitest run src/modules/scheduling/public_booking.api.test.ts
+        run: pnpm exec vitest run
+
+      - name: Messaging (smoke S5)
+        working-directory: backend
+        env:
+          KEK_LOCAL_BASE64: YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=
+        run: pnpm test:messaging
 
   e2e-s3:
     name: E2E S3 (agenda painel)
@@ -418,5 +424,118 @@ jobs:
             sleep 1
           done
           pnpm test:e2e:s4
+
+  e2e-s5:
+    name: E2E S5 (WhatsApp / notificações)
+    runs-on: ubuntu-latest
+    needs: quality
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: barbearia_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d barbearia_dev"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_MIGRATION_URL: postgresql://postgres:postgres@localhost:5432/barbearia_dev?schema=public
+      DATABASE_URL: postgresql://app_user:app@localhost:5432/barbearia_dev?schema=public
+      REDIS_URL: redis://localhost:6379
+      APP_PUBLIC_URL: http://localhost:3000
+      CORS_ORIGINS: http://localhost:3000
+      STORAGE_ENDPOINT: http://localhost:9000
+      STORAGE_BUCKET: barbearia-dev
+      STORAGE_REGION: sa-east-1
+      STORAGE_ACCESS_KEY: minioadmin
+      STORAGE_SECRET_KEY: minioadmin
+      MAIL_DSN: smtp://localhost:1025
+      MAIL_FROM: noreply@localhost
+      MESSAGING_PROVIDER: fake
+      NODE_ENV: test
+      NEXT_PUBLIC_API_URL: http://localhost:3333
+      API_URL: http://localhost:3333/api/v1
+      KEK_LOCAL_BASE64: YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Install psql client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Ensure DB roles
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d barbearia_dev -f backend/scripts/ensure-db-roles.sql
+
+      - name: Prisma generate + migrate
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ env.DATABASE_MIGRATION_URL }}
+        run: |
+          pnpm exec prisma generate
+          pnpm exec prisma migrate deploy
+
+      - name: Generate JWT keys
+        run: |
+          openssl genrsa -out /tmp/jwt-private.pem 2048
+          openssl rsa -in /tmp/jwt-private.pem -pubout -out /tmp/jwt-public.pem
+          {
+            echo "JWT_PRIVATE_KEY=$(base64 -w0 /tmp/jwt-private.pem)"
+            echo "JWT_PUBLIC_KEY=$(base64 -w0 /tmp/jwt-public.pem)"
+          } >> "$GITHUB_ENV"
+
+      - name: Seed
+        working-directory: backend
+        run: pnpm db:seed
+
+      - name: Build contracts
+        run: pnpm --filter @repo/contracts build
+
+      - name: Install Playwright Chromium
+        working-directory: frontend
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Start stack and Playwright S5
+        run: |
+          pnpm --filter @repo/backend exec tsx src/server.ts > /tmp/api.log 2>&1 &
+          pnpm --filter @repo/backend exec tsx src/worker.ts > /tmp/worker.log 2>&1 &
+          pnpm --filter @repo/frontend exec next dev --turbopack --port 3000 > /tmp/web.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl -sf http://localhost:3333/health >/dev/null; then break; fi
+            if [ "$i" -eq 40 ]; then echo "API não subiu" >&2; tail -n 80 /tmp/api.log; exit 1; fi
+            sleep 1
+          done
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:3000 >/dev/null; then break; fi
+            if [ "$i" -eq 60 ]; then echo "Frontend não subiu" >&2; tail -n 80 /tmp/web.log; exit 1; fi
+            sleep 1
+          done
+          pnpm test:e2e:s5
 
 

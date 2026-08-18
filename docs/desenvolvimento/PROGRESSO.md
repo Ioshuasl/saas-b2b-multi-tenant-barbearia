@@ -4,6 +4,20 @@ Append-only. Entradas mais recentes no topo.
 
 ---
 
+## 2026-08-18 — S4 encerrada · S5 planejada
+
+### Feito
+
+- S4 fechada: seção **Encerramento** + Marco **M3**; herança atualizada; link para S5
+- Checklist [`sprints/S5-whatsapp-notificacoes.md`](./sprints/S5-whatsapp-notificacoes.md): E6, worker BullMQ, WAHA+Resend, UI QR, M4
+- Roadmap §2 linka checklist S5; README desenvolvimento aponta S5 como fase atual
+
+### Próximo
+
+- S5 Bloco 1 — contratos + DDL + ports/adapters messaging
+
+---
+
 ## 2026-08-18 — S4 Bloco 4 (aceite: smoke, vitest API, e2e Playwright)
 
 ### Feito

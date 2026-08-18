@@ -23,10 +23,12 @@
     "test:customers": "pnpm --filter @repo/backend test:customers",
     "test:scheduling": "pnpm --filter @repo/backend test:scheduling",
     "test:public-booking": "pnpm --filter @repo/backend test:public-booking",
+    "test:messaging": "pnpm --filter @repo/backend test:messaging",
     "test:e2e": "pnpm --filter @repo/frontend test:e2e",
     "test:e2e:s2": "pnpm --filter @repo/frontend test:e2e:s2",
     "test:e2e:s3": "pnpm --filter @repo/frontend test:e2e:s3",
     "test:e2e:s4": "pnpm --filter @repo/frontend test:e2e:s4",
+    "test:e2e:s5": "pnpm --filter @repo/frontend test:e2e:s5",
     "db:generate": "pnpm --filter @repo/backend db:generate",
     "db:migrate": "pnpm --filter @repo/backend db:migrate",
     "db:seed": "pnpm --filter @repo/backend db:seed"

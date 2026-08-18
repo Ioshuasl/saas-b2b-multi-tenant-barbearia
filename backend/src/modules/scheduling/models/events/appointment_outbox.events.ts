@@ -13,4 +13,7 @@ export type AppointmentOutboxPayload = {
   startsAt: string;
   endsAt: string;
   status: string;
+  notifyCustomer?: boolean;
+  cancelLink?: string;
+  cancelToken?: string;
 };

@@ -6,6 +6,7 @@ import { env } from './shared/config/env.js';
 import { errorHandler } from './shared/middlewares/error_handler.middleware.js';
 import { requestIdMiddleware } from './shared/middlewares/request_id.middleware.js';
 import { buildApiRouter } from './routes/index.js';
+import { buildWahaWebhookRouter } from './modules/messaging/messaging.module.js';
 
 export function createApp(): Application {
   const app = express();
@@ -19,6 +20,13 @@ export function createApp(): Application {
       credentials: true,
     }),
   );
+
+  app.use(
+    '/api/v1/webhooks/whatsapp',
+    express.raw({ type: 'application/json', limit: '2mb' }),
+    buildWahaWebhookRouter(),
+  );
+
   app.use(express.json({ limit: '1mb' }));
   app.use(cookieParser());
   app.use(requestIdMiddleware);

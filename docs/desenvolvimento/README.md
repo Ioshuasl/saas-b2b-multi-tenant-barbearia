@@ -19,9 +19,10 @@ Pasta **somente** para acompanhamento do desenvolvimento (scaffold, sprints, dec
 
 ## Status atual
 
-- **Fase:** Sprint 4 — Página pública — **concluída** (Marco M3)
-- **Anterior:** Sprint 3 — Agenda no painel — **concluída**
+- **Fase:** Sprint 5 — WhatsApp e notificações — **planejada**
+- **Anterior:** Sprint 4 — Página pública — **concluída** (Marco M3)
 - **Especificação:** [`../README.md`](../README.md)
+- **Checklist S5:** [`sprints/S5-whatsapp-notificacoes.md`](./sprints/S5-whatsapp-notificacoes.md)
 - **Checklist S4:** [`sprints/S4-pagina-publica.md`](./sprints/S4-pagina-publica.md)
 - **Checklist S3:** [`sprints/S3-agenda-painel.md`](./sprints/S3-agenda-painel.md)
 - **Checklist S2:** [`sprints/S2-clientes-agenda-motor.md`](./sprints/S2-clientes-agenda-motor.md)

@@ -18,6 +18,7 @@ const API_ERROR_MESSAGES: Record<string, string> = {
   UNAUTHENTICATED: 'Sessão expirada. Entre de novo.',
   FORBIDDEN: 'Você não tem permissão para esta ação.',
   NOT_FOUND: 'Registro não encontrado.',
+  RISK_NOT_ACCEPTED: 'Confirme a ciência de risco antes de conectar.',
   SUBSCRIPTION_REQUIRED: 'Assinatura necessária para esta ação.',
   PLAN_LIMIT_EXCEEDED: 'Limite do plano atingido.',
   RATE_LIMITED: 'Muitas tentativas. Aguarde um momento.',

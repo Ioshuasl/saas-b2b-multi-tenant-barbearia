@@ -43,6 +43,11 @@ model Tenant {
   appointments        Appointment[]
   appointmentServices AppointmentService[]
   appointmentHistory  AppointmentHistory[]
+  whatsappAccount     WhatsappAccount?
+  messageTemplates    MessageTemplate[]
+  automations         Automation[]
+  automationRuns      AutomationRun[]
+  notifications       Notification[]
 
   @@map("tenant")
 }
@@ -89,6 +94,7 @@ model Location {
   slugHistory   LocationSlugHistory[]
   customers     Customer[]
   appointments  Appointment[]
+  notifications Notification[]
 
   @@unique([tenantId, slug])
   @@map("location")
@@ -419,6 +425,7 @@ model Customer {
   tenant         Tenant   @relation(fields: [tenantId], references: [id])
   firstLocation  Location @relation(fields: [firstLocationId], references: [id])
   appointments   Appointment[]
+  notifications  Notification[]
 
   @@map("customer")
 }
@@ -449,6 +456,7 @@ model Appointment {
   staff    Staff    @relation(fields: [staffId], references: [id])
   services AppointmentService[]
   history  AppointmentHistory[]
+  notifications Notification[]
 
   @@map("appointment")
 }
@@ -485,4 +493,111 @@ model AppointmentHistory {
 
   @@index([tenantId, appointmentId, createdAt(sort: Desc)], map: "idx_appointment_history_appointment")
   @@map("appointment_history")
+}
+
+model WhatsappAccount {
+  id             String    @id @db.Uuid
+  tenantId       String    @unique @map("tenant_id") @db.Uuid
+  sessionName    String    @unique @map("session_name")
+  displayPhone   String?   @map("display_phone")
+  riskAcceptedAt DateTime? @map("risk_accepted_at") @db.Timestamptz
+  wabaId         String?   @map("waba_id")
+  phoneNumberId  String?   @map("phone_number_id")
+  accessTokenRef String?   @map("access_token_ref")
+  status         String    @default("PENDING")
+  killSwitch     Boolean   @default(false) @map("kill_switch")
+  lastError      String?   @map("last_error")
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("whatsapp_account")
+}
+
+model MessageTemplate {
+  id        String   @id @db.Uuid
+  tenantId  String?  @map("tenant_id") @db.Uuid
+  key       String
+  category  String
+  language  String   @default("pt_BR")
+  body      String
+  variables Json     @default("[]")
+  status    String   @default("ACTIVE")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id])
+
+  @@map("message_template")
+}
+
+model Automation {
+  id        String   @id @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  key       String
+  enabled   Boolean  @default(true)
+  config    Json
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  tenant Tenant          @relation(fields: [tenantId], references: [id])
+  runs   AutomationRun[]
+
+  @@unique([tenantId, key])
+  @@map("automation")
+}
+
+model AutomationRun {
+  id             String    @id @db.Uuid
+  tenantId       String    @map("tenant_id") @db.Uuid
+  automationId   String    @map("automation_id") @db.Uuid
+  targetType     String    @map("target_type")
+  targetId       String    @map("target_id") @db.Uuid
+  scheduledFor   DateTime  @map("scheduled_for") @db.Timestamptz
+  executedAt     DateTime? @map("executed_at") @db.Timestamptz
+  result         String?
+  notificationId String?   @map("notification_id") @db.Uuid
+
+  tenant     Tenant     @relation(fields: [tenantId], references: [id])
+  automation Automation @relation(fields: [automationId], references: [id])
+
+  @@unique([tenantId, automationId, targetType, targetId])
+  @@map("automation_run")
+}
+
+model Notification {
+  id                String    @id @db.Uuid
+  tenantId          String    @map("tenant_id") @db.Uuid
+  locationId        String?   @map("location_id") @db.Uuid
+  appointmentId     String?   @map("appointment_id") @db.Uuid
+  customerId        String?   @map("customer_id") @db.Uuid
+  channel           String
+  provider          String
+  templateKey       String    @map("template_key")
+  recipient         String
+  scheduledFor      DateTime? @map("scheduled_for") @db.Timestamptz
+  sentAt            DateTime? @map("sent_at") @db.Timestamptz
+  status            String    @default("PENDING")
+  providerMessageId String?   @map("provider_message_id")
+  error             String?
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz
+
+  tenant      Tenant       @relation(fields: [tenantId], references: [id])
+  location    Location?    @relation(fields: [locationId], references: [id])
+  appointment Appointment? @relation(fields: [appointmentId], references: [id])
+  customer    Customer?    @relation(fields: [customerId], references: [id])
+
+  @@index([status, scheduledFor], map: "idx_notification_due")
+  @@map("notification")
+}
+
+model WebhookEvent {
+  id              String    @id @db.Uuid
+  provider        String
+  providerEventId String    @map("provider_event_id")
+  payload         Json
+  processedAt     DateTime? @map("processed_at") @db.Timestamptz
+  error           String?
+
+  @@unique([provider, providerEventId])
+  @@map("webhook_event")
 }

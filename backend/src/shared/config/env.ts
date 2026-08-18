@@ -30,6 +30,8 @@ const envSchema = z.object({
   MESSAGING_PROVIDER: z.enum(['waha', 'cloud', 'fake']).default('fake'),
   WAHA_BASE_URL: z.string().url().optional(),
   WAHA_API_KEY: z.string().min(1).optional(),
+  WAHA_WEBHOOK_HMAC_KEY: z.string().min(1).optional(),
+  WAHA_WEBHOOK_URL: z.string().url().optional(),
   MAIL_DSN: z.string().min(1),
   MAIL_FROM: z.string().min(1).default('noreply@localhost'),
   RESEND_API_KEY: z.string().optional(),

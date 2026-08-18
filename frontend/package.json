@@ -12,7 +12,8 @@
     "test:e2e": "playwright test",
     "test:e2e:s2": "playwright test e2e/s2-acceptance.spec.ts",
     "test:e2e:s3": "playwright test e2e/s3-acceptance.spec.ts",
-    "test:e2e:s4": "playwright test e2e/s4-acceptance.spec.ts"
+    "test:e2e:s4": "playwright test e2e/s4-acceptance.spec.ts",
+    "test:e2e:s5": "playwright test e2e/s5-acceptance.spec.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

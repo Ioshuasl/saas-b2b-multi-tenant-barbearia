@@ -55,6 +55,7 @@ export class InsertRepository {
     sealedNotes: string | undefined,
     actor: { actorId?: string; actorType: HistoryActorTypeName },
     writeOutbox = true,
+    outboxExtras?: { notifyCustomer?: boolean; cancelLink?: string; cancelToken?: string },
   ): Promise<AppointmentRecord> {
     const appointmentId = idGenerator.next();
     try {
@@ -112,6 +113,9 @@ export class InsertRepository {
           startsAt: created.startsAt.toISOString(),
           endsAt: created.endsAt.toISOString(),
           status: created.status,
+          notifyCustomer: outboxExtras?.notifyCustomer,
+          cancelLink: outboxExtras?.cancelLink,
+          cancelToken: outboxExtras?.cancelToken,
         });
       }
 

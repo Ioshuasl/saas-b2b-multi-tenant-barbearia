@@ -45,6 +45,14 @@ export function AppNav({ showWizard }: { showWizard: boolean }) {
           </NavLink>
         ))}
       </Can>
+      <Can permission="messaging.configure">
+        <NavLink
+          href="/configuracoes/whatsapp"
+          active={pathname === '/configuracoes/whatsapp'}
+        >
+          Mensagens
+        </NavLink>
+      </Can>
       <Can permission="users.manage">
         <NavLink href="/configuracoes/equipe" active={pathname === '/configuracoes/equipe'}>
           Equipe

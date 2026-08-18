@@ -11,7 +11,7 @@ import { AppNav } from '@/packages/admin/components/Shell/AppNav';
 import { LocationSwitcher } from '@/packages/admin/components/Shell/LocationSwitcher';
 import { GhostButton } from '@/shared/ui/Ui';
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ children, banner }: { children: ReactNode; banner?: ReactNode }) {
   const meQuery = useSessionMeHook();
   const locationsQuery = useLocationListHook(meQuery.isSuccess);
   const onboardingQuery = useOnboardingGetHook(meQuery.isSuccess);
@@ -66,6 +66,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </GhostButton>
           </div>
         </header>
+        {banner}
         <div className="p-6">{children}</div>
       </div>
     </div>

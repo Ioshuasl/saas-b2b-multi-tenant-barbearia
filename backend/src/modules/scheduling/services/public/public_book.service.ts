@@ -139,6 +139,8 @@ export class BookService {
           },
           undefined,
           { actorType: HistoryActorType.CUSTOMER },
+          true,
+          { cancelToken },
         );
       });
 

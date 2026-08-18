@@ -7,9 +7,29 @@
 
 **Pré-requisito:** [S3](./S3-agenda-painel.md) aceite local (e2e `s3-acceptance` verde; `test:customers` + `test:scheduling` + `test:rls` verdes).
 
-**Estado (2026-08-18):** Sprint 4 **concluída** (Blocos 1–4).
+**Estado (2026-08-18):** Sprint 4 **concluída** · Marco **M3** entregue. Próxima: [S5 — WhatsApp e notificações](./S5-whatsapp-notificacoes.md).
 
 ---
+
+## Encerramento (2026-08-18)
+
+| Marco | Status |
+| --- | --- |
+| **M3 — Página pública no ar** | Cliente marca pelo link; cancela/remarca com token; e2e verde |
+
+**Validação executada**
+
+| Comando / artefato | Resultado |
+| --- | --- |
+| `pnpm test:public-booking` | Smoke S4 (tenant, token, remarcar, SLOT_TAKEN, indisponível) |
+| `vitest run …/public_booking.api.test.ts` | 6 testes HTTP públicos |
+| `pnpm test:e2e:s4` | Playwright + axe nas rotas públicas |
+| `pnpm test:scheduling` + `test:customers` + `test:rls` | Sem regressão S2 |
+| CI `integration` + `e2e-s4` | Jobs adicionados |
+
+**Links de teste manual (seed local):** [http://localhost:3000/navalha](http://localhost:3000/navalha) → redirect `/navalha/default`; rede [http://localhost:3000/corte-fino](http://localhost:3000/corte-fino).
+
+**Herança para S5:** outbox `scheduling.appointment_*` já gravada na S2; envio real, worker BullMQ e UI de conexão WAHA ficam na S5. Tela de confirmação pública **não** promete WhatsApp (copy S4 mantida até S5 ligar envio).
 
 ## Camadas (obrigatório em toda sprint)
 
@@ -72,13 +92,13 @@ Usar; **não** reimplementar regra no frontend.
 | --- | --- | --- |
 | CRUD + disponibilidade públicos | `scheduling` API S2 | Wizard, grade, book, cancel/remarcar |
 | `GET /public/{tenantSlug}` | 1 unidade vs N; `bookingAvailable` | Redirect ou seletor |
-| `GET /public/{tenantSlug}/{locationSlug}` | serviços + `bookingAvailable` | Tela de unidade; **falta `staff[]`** |
+| `GET /public/{tenantSlug}/{locationSlug}` | serviços + `bookingAvailable` + `staff[]` | Tela de unidade |
 | Honeypot `website` + captcha stub (5 falhas) | `public_booking_guard` | Campo oculto + widget após `CAPTCHA_REQUIRED` |
 | `cancelToken` no 201; hash no banco | S2 | Página de cancelar/remarcar |
 | Máx. 3 futuros / telefone; consentimento | S2 | Validação UX + erros 422 |
 | Rate `public:booking:ip` e `:location` | rotas S2 | Sem duplicar no Next |
 | Erros `SLOT_TAKEN`, `TOO_LATE_TO_CANCEL`, `CONSENT_REQUIRED`, `MAX_FUTURE_BOOKINGS`, `CAPTCHA_REQUIRED` | API S2 | Toast pt-BR |
-| Wizard link/QR + copy “Sprint 4” | `WizardForm` | Trocar copy; URL já é `APP_PUBLIC_URL/{slug}` |
+| Wizard link/QR + copy placeholder | `WizardForm` | Link real + CTA “Abrir página de agendamento” |
 | Package `public` Auth | signup/login | **Não** misturar com booking; entidade nova |
 | Slugs reservados parciais | `identity` / `locations` | Ampliar (Bloco 1) |
 | Seed `/navalha` (1 unidade), `/corte-fino` (centro/jardim) | seeders | E2E e aceite manual |
@@ -274,7 +294,7 @@ Rotas estáticas (`/login`, `/signup`, `/agenda`, `/clientes`, …) prevalecem s
 
 ## Bloqueios
 
-_Nenhum no momento._
+_Nenhum — sprint encerrada._
 
 ## Notas
 

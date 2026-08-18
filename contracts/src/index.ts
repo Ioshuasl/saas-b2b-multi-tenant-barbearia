@@ -25,6 +25,7 @@ export * from './customer.js';
 export * from './appointment.js';
 export * from './availability.js';
 export * from './public_booking.js';
+export * from './messaging.js';
 
 export function isApiError(body: unknown): body is ApiErrorBody {
   return (

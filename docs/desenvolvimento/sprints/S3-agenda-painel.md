@@ -7,7 +7,7 @@
 
 **Pré-requisito:** [S2](./S2-clientes-agenda-motor.md) aceite local (`test:customers` + `test:scheduling` + `test:rls` verdes; smokes painel e público OK).
 
-**Estado (2026-08-18):** Sprint 3 **concluída** (Blocos 1–4 + e2e CI). Próxima: [S4](./S4-pagina-publica.md).
+**Estado (2026-08-18):** Sprint 3 **concluída** (Blocos 1–4 + e2e CI). S4 concluída; próxima entrega de produto: [S5](./S5-whatsapp-notificacoes.md).
 
 ---
 

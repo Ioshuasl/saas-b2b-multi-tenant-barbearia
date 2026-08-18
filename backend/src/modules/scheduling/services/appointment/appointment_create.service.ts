@@ -104,6 +104,8 @@ export class CreateService {
           },
           sealedNotes,
           { actorId: ctx.userId, actorType: HistoryActorType.USER },
+          true,
+          { notifyCustomer: appointmentSchema.notifyCustomer },
         );
       });
 
